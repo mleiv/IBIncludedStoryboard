@@ -19,7 +19,7 @@ In your main storyboard, create a placeholder view controller where you want to 
 3. Identify the storyboard in the IBIncludedStoryboard user-defined runtime attributes **Storyboard** and, optionally, **Id** (they will appear under the Attributes Inspector tab, one to the right of the Identity Inspector shown in the screenshot).
 4. The chosen scene from your new storyboard should appear in the Interface Builder window.
 
-That's it! You now have linked storyboards.
+That's it! You now have linked storyboards. All of your selected scene attributes, like scene title, should propogate up to the main storyboard placeholder scene. Your selected scene will, however, remain a child of the placeholder (rather than replacing it in the storyboard). See [The Catch - Segues](#the-catch---segues) further down for problems that relationship may cause.
 
 ## Using With IBIncludedNib
 
@@ -36,15 +36,17 @@ I have another Swift class called [IBIncludedNib](https://github.com/mleiv/IBInc
 
 ## The Catch - Segues
 
-Because IBIncludedStoryboard and IBIncludedNib are *child* view controllers of the main storyboard, calling segues from a child to a parent can get tricky. For IBIncludedNib in particular, I have just got into the habit of invoking all segues from IBAction functions.
-
-![Seguing In Code Step 1](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/5-NibSegueDetail.imageset/5-NibSegueDetail.png?raw=true)
+Because IBIncludedStoryboard and IBIncludedNib are *child* view controllers of the main storyboard scene, calling segues from a child to a parent can get tricky. For IBIncludedNib in particular, I have just got into the habit of invoking all segues from IBAction functions.
 
 1. Create the segue from the storyboard scene's parent controller to the new scene and give it a unique identifier.
 
-![Seguing In Code Step 2](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/6-NibSegueCode.imageset/6-NibSegueCode.png?raw=true)
+    ![Seguing In Code Step 1](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/5-NibSegueDetail.imageset/5-NibSegueDetail.png?raw=true)
+    
+2. Wire up an element in the child controller to code that directly invokes the segue.
 
-2. Wire up an element in the child controller to code that directly invokes the segue. Example: 
+    ![Seguing In Code Step 2](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/6-NibSegueCode.imageset/6-NibSegueCode.png?raw=true)
+
+Example:
 
 ```swift
 @IBAction func clickedButton(sender: UIButton) {
