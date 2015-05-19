@@ -7,7 +7,7 @@
         <!--Main Root-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController title="Main Root" id="BYZ-38-t0r" sceneMemberID="viewController">
+                <viewController title="Main Root" id="BYZ-38-t0r" customClass="MainScene1Controller" customModule="IBIncludedStoryboardDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
@@ -17,7 +17,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dPN-H0-CWG">
-                                <rect key="frame" x="213" y="285" width="175" height="30"/>
+                                <rect key="frame" x="213" y="164" width="175" height="30"/>
                                 <state key="normal" title="Open Second Storyboard">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -25,23 +25,44 @@
                                     <segue destination="ljc-Ry-ciD" kind="show" id="eGJ-nu-MZH"/>
                                 </connections>
                             </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="UQb-f8-U86">
+                                <rect key="frame" x="200" y="263" width="200" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="200" id="dfe-wi-Bij"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Type value here to send it along:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nLy-Df-Msx">
+                                <rect key="frame" x="217" y="244" width="167" height="14"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                <color key="textColor" red="0.29803922772407532" green="0.29803922772407532" blue="0.29803922772407532" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="centerY" secondItem="dPN-H0-CWG" secondAttribute="centerY" id="aDm-hQ-eCJ"/>
+                            <constraint firstItem="UQb-f8-U86" firstAttribute="top" secondItem="nLy-Df-Msx" secondAttribute="bottom" constant="5" id="H0W-fb-zWn"/>
+                            <constraint firstAttribute="centerX" secondItem="UQb-f8-U86" secondAttribute="centerX" id="HR5-2Y-BGG"/>
+                            <constraint firstAttribute="centerX" secondItem="nLy-Df-Msx" secondAttribute="centerX" id="mZi-1N-Oc2"/>
+                            <constraint firstItem="nLy-Df-Msx" firstAttribute="top" secondItem="dPN-H0-CWG" secondAttribute="bottom" constant="50" id="oAD-aL-4Bk"/>
                             <constraint firstAttribute="centerX" secondItem="dPN-H0-CWG" secondAttribute="centerX" id="vRh-Ib-wId"/>
+                            <constraint firstItem="dPN-H0-CWG" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="100" id="z7U-NT-XBH"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Main Root" id="ABC-bS-KQD"/>
+                    <connections>
+                        <outlet property="textField" destination="UQb-f8-U86" id="WyV-Vb-7gy"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1117" y="338"/>
         </scene>
-        <!--View Controller-->
+        <!--Included Wrapper View Controller-->
         <scene sceneID="Ckc-ML-wuy">
             <objects>
-                <viewController id="ljc-Ry-ciD" sceneMemberID="viewController">
+                <viewController id="ljc-Ry-ciD" customClass="IBIncludedWrapperViewController" customModule="IBIncludedStoryboardDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="5G2-pO-gcy"/>
                         <viewControllerLayoutGuide type="bottom" id="qh8-5c-Cke"/>

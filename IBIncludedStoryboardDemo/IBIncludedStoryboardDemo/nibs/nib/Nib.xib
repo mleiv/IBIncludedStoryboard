@@ -7,6 +7,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NibController" customModule="IBIncludedStoryboardDemo" customModuleProvider="target">
             <connections>
                 <outlet property="clickButton" destination="ig7-Ph-7UC" id="bok-NR-Qyv"/>
+                <outlet property="clickButton2" destination="P1x-bi-hGu" id="Y0n-n4-ckX"/>
                 <outlet property="view" destination="iN0-l3-epB" id="BM1-y1-pRJ"/>
             </connections>
         </placeholder>
@@ -19,23 +20,38 @@
                     <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ig7-Ph-7UC">
-                            <rect key="frame" x="250" y="285" width="100" height="30"/>
+                            <rect key="frame" x="233" y="285" width="135" height="30"/>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <constraints>
                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="cZX-CV-cJi"/>
                             </constraints>
-                            <state key="normal" title="Next Page">
+                            <state key="normal" title="Next Page - Send 1">
                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                             </state>
                             <connections>
                                 <action selector="clickedButton:" destination="-1" eventType="touchUpInside" id="Uel-PX-cN5"/>
                             </connections>
                         </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P1x-bi-hGu">
+                            <rect key="frame" x="233" y="343" width="135" height="30"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <constraints>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="GLi-uD-fi8"/>
+                            </constraints>
+                            <state key="normal" title="Next Page - Send 2">
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="clickedButton:" destination="-1" eventType="touchUpInside" id="CAZ-rw-xrj"/>
+                            </connections>
+                        </button>
                     </subviews>
                     <color key="backgroundColor" red="1" green="0.80000001192092896" blue="0.40000000596046448" alpha="1" colorSpace="calibratedRGB"/>
                     <constraints>
+                        <constraint firstItem="P1x-bi-hGu" firstAttribute="top" secondItem="ig7-Ph-7UC" secondAttribute="bottom" constant="28" id="8HX-aF-hIt"/>
                         <constraint firstAttribute="centerX" secondItem="ig7-Ph-7UC" secondAttribute="centerX" id="ITD-dv-v0j"/>
                         <constraint firstAttribute="centerY" secondItem="ig7-Ph-7UC" secondAttribute="centerY" id="gx2-Ug-3KC"/>
+                        <constraint firstAttribute="centerX" secondItem="P1x-bi-hGu" secondAttribute="centerX" id="yUm-jr-tQ0"/>
                     </constraints>
                 </view>
             </subviews>

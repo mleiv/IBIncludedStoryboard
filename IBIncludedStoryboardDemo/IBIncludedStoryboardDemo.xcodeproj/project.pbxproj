@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */; };
+		B0AADE941B0BE1EF00079665 /* Nib2.xib in Resources */ = {isa = PBXBuildFile; fileRef = B0AADE921B0BE1EF00079665 /* Nib2.xib */; };
+		B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */; };
+		B0AADE971B0BE51400079665 /* MainScene1Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE961B0BE51400079665 /* MainScene1Controller.swift */; };
+		B0AADE991B0BE8F300079665 /* SecondScene1Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE981B0BE8F300079665 /* SecondScene1Controller.swift */; };
 		B0CAD3A51AFE9C76004C9719 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CAD3A41AFE9C76004C9719 /* AppDelegate.swift */; };
 		B0CAD3AA1AFE9C76004C9719 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0CAD3A81AFE9C76004C9719 /* Main.storyboard */; };
 		B0CAD3AC1AFE9C76004C9719 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0CAD3AB1AFE9C76004C9719 /* Images.xcassets */; };
@@ -31,6 +36,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBIncludedWrapperViewController.swift; sourceTree = "<group>"; };
+		B0AADE921B0BE1EF00079665 /* Nib2.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Nib2.xib; sourceTree = "<group>"; };
+		B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Nib2Controller.swift; sourceTree = "<group>"; };
+		B0AADE961B0BE51400079665 /* MainScene1Controller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainScene1Controller.swift; sourceTree = "<group>"; };
+		B0AADE981B0BE8F300079665 /* SecondScene1Controller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecondScene1Controller.swift; sourceTree = "<group>"; };
 		B0CAD39F1AFE9C76004C9719 /* IBIncludedStoryboardDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IBIncludedStoryboardDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0CAD3A31AFE9C76004C9719 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0CAD3A41AFE9C76004C9719 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -66,6 +76,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B0AADE911B0BE1EF00079665 /* nib2 */ = {
+			isa = PBXGroup;
+			children = (
+				B0AADE921B0BE1EF00079665 /* Nib2.xib */,
+				B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */,
+			);
+			name = nib2;
+			path = Nibs/nib2;
+			sourceTree = "<group>";
+		};
 		B0CAD3961AFE9C76004C9719 = {
 			isa = PBXGroup;
 			children = (
@@ -88,8 +108,11 @@
 			isa = PBXGroup;
 			children = (
 				B0CAD3C71AFE9E01004C9719 /* IBIncludedStoryboard.swift */,
+				B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */,
 				B0CAD3A81AFE9C76004C9719 /* Main.storyboard */,
+				B0AADE961B0BE51400079665 /* MainScene1Controller.swift */,
 				B0CAD3C41AFE9D59004C9719 /* Second.storyboard */,
+				B0AADE981B0BE8F300079665 /* SecondScene1Controller.swift */,
 				B0CAD3CB1AFE9FDD004C9719 /* Nibs */,
 				B0CAD3AB1AFE9C76004C9719 /* Images.xcassets */,
 				B0CAD3AD1AFE9C76004C9719 /* LaunchScreen.xib */,
@@ -130,6 +153,7 @@
 				B0CAD3C91AFE9FD8004C9719 /* Nibs.storyboard */,
 				B0D1E4671B011B2D00C03799 /* IBIncludedNib.swift */,
 				B0D1E4681B011B2D00C03799 /* nib */,
+				B0AADE911B0BE1EF00079665 /* nib2 */,
 			);
 			name = Nibs;
 			sourceTree = "<group>";
@@ -228,6 +252,7 @@
 				B0CAD3AA1AFE9C76004C9719 /* Main.storyboard in Resources */,
 				B0CAD3AF1AFE9C76004C9719 /* LaunchScreen.xib in Resources */,
 				B0D1E46C1B011B2D00C03799 /* Nib.xib in Resources */,
+				B0AADE941B0BE1EF00079665 /* Nib2.xib in Resources */,
 				B0CAD3AC1AFE9C76004C9719 /* Images.xcassets in Resources */,
 				B0CAD3CA1AFE9FD8004C9719 /* Nibs.storyboard in Resources */,
 			);
@@ -247,9 +272,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */,
 				B0D1E46B1B011B2D00C03799 /* IBIncludedNib.swift in Sources */,
+				B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */,
 				B0CAD3A51AFE9C76004C9719 /* AppDelegate.swift in Sources */,
 				B0CAD3C81AFE9E01004C9719 /* IBIncludedStoryboard.swift in Sources */,
+				B0AADE971B0BE51400079665 /* MainScene1Controller.swift in Sources */,
+				B0AADE991B0BE8F300079665 /* SecondScene1Controller.swift in Sources */,
 				B0D1E46D1B011B2D00C03799 /* NibController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

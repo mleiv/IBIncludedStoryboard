@@ -1,5 +1,5 @@
 //
-//  IBIncludedNib.swift
+//  IBIncludedStoryboard.swift
 //
 //  Copyright 2015 Emily Ivie
 
@@ -116,6 +116,24 @@ public class IBIncludedStoryboard: UIView {
         viewController.didMoveToParentViewController(parent)
         attachedToParentViewController = true
         transferControllerProperties(viewController, parent: parent)
+        attachSegueForwarders(viewController, parent: parent)
+    }
+    
+    /**
+        Attaches the included view controller to any segue forwarding view controllers found in hierarchy
+        
+        :param: viewController      the view controller to insert
+        :param: parent              the lowest view controller to try attaching to
+    */
+    private func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
+        var topController = parent as UIViewController?
+        while topController != nil {
+            if let placeholder = topController as? IBIncludedWrapperViewController {
+                placeholder.addIncludedViewController(viewController)
+                // this will run any waiting prepareForSegue functions now, and check our included controller for any prepareForSegue functions in the future.
+            }
+            topController = topController?.parentViewController
+        }
     }
     
     /**
@@ -267,3 +285,4 @@ public class IBIncludedStoryboard: UIView {
         #endif
     }
 }
+    

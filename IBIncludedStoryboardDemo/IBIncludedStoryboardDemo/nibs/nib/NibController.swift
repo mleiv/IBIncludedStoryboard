@@ -6,12 +6,12 @@
 
 import UIKit
 
-class NibController: UIViewController {
+class NibController: UIViewController, IBIncludedSegueableController {
 
-    @IBOutlet weak var clickLabel: UILabel!
     @IBOutlet weak var clickButton: UIButton!
+    @IBOutlet weak var clickButton2: UIButton!
     
-    private var clicks = 0
+    var storedValue = "Unset"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,7 +23,23 @@ class NibController: UIViewController {
     }
     
     @IBAction func clickedButton(sender: UIButton) {
+        storedValue = sender == clickButton ? "1" : "2"
+        
+        // you can also set prepareAfterIBIncludedSegue here:
+        //let someValue = storedValue
+        //prepareAfterIBIncludedSegue = { (destination) in
+        //    if let includedDestination = destination as? Nib2Controller {
+        //        includedDestination.sentValue = storedValue
+        //    }
+        //}
+
         parentViewController?.performSegueWithIdentifier("Page2 Segue", sender: sender)
+    }
+    
+    lazy var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType = { (destination) in
+        if let includedDestination = destination as? Nib2Controller {
+            includedDestination.sentValue = self.storedValue
+        }
     }
 
 }
