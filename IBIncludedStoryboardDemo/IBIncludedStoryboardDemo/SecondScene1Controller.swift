@@ -11,18 +11,10 @@ import UIKit
 class SecondScene1Controller: UIViewController, IBIncludedSegueableController {
     @IBOutlet weak var label: UILabel!
     
-    var sentValue: String = "None" {
-        didSet {
-            setup()
-        }
-    }
+    var sentValue: String = "None"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setup()
-    }
-    
-    func setup() {
         label?.text = "Sent Value: \(sentValue)"
     }
 }

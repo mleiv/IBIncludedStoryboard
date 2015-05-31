@@ -77,6 +77,4 @@ class MyIncludedNibController: UIViewController, IBIncludedSegueableController {
 }
 ```
 
-Also, **prepareAfterIBIncludedSegue** may be invoked before or after viewDidLoad() (before for unwrapped view controllers, after for nested elements), so keep that in mind when running page setup. 
-
 See the demo for good examples of how this works.

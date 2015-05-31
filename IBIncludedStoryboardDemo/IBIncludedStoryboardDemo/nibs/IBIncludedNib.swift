@@ -92,18 +92,25 @@ public class IBIncludedNib: UIView{
         //first retrieve the view from its controller or its nib
         if controller != nil {
             if let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
-                let viewController = ControllerType(nibName: nib, bundle: bundle) as UIViewController
+                //This is the better way to instantiate:
+                //> let viewController = ControllerType(nibName: nib, bundle: bundle) as UIViewController
+                //But I do it this way instead so I can force the segue code to run before viewDidLoad
+                // (which we now call explicitly in attachViewControllerToParent() :/ )
+                let viewController = ControllerType() as UIViewController
+                UINib(nibName: nib, bundle: bundle).instantiateWithOwner(viewController, options: nil)
                 view = viewController.view
+                viewController.awakeFromNib()
                 //hook up view controller to hierarchy so viewWillAppear() works right...
                 if let parentViewController = findParentViewController(topViewController()){
                     attachViewControllerToParent(viewController, parent: parentViewController)
+                    viewController.view = view
                 } else {
                     strongViewController = viewController //hold strong ref ourselves
                 }
             }
         } else {
-            if let nib = bundle.loadNibNamed(nib, owner: self, options: nil) {
-                if let nibView = nib.first as? UIView {
+            if let nibThing = bundle.loadNibNamed(nib, owner: self, options: nil) {
+                if let nibView = nibThing.first as? UIView {
                     view = nibView
                 }
             }
@@ -135,6 +142,7 @@ public class IBIncludedNib: UIView{
         viewController.didMoveToParentViewController(parent)
         attachedToParentViewController = true
         attachSegueForwarders(viewController, parent: parent)
+        viewController.viewDidLoad()
     }
     
     /**

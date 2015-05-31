@@ -10,24 +10,20 @@ class Nib2Controller: UIViewController {
 
     @IBOutlet weak var titleLabel: UILabel!
     
-    var sentValue: String = "?" {
-        didSet{
-            setup()
-        }
+    var sentValue: String = "?"
+    
+    override func awakeFromNib() {
+        let x = 6
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setup()
+        titleLabel.text = "Sent Value: \(sentValue)"
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         //yes, this works also!
-    }
-    
-    func setup() {
-        titleLabel.text = "Sent Value: \(sentValue)"
     }
 
 }
