@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B09402491B1CE4D9008B3990 /* Nibs.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B09402481B1CE4D9008B3990 /* Nibs.storyboard */; };
+		B094024D1B1CE523008B3990 /* IBIncludedNib.swift in Sources */ = {isa = PBXBuildFile; fileRef = B094024C1B1CE523008B3990 /* IBIncludedNib.swift */; };
 		B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */; };
 		B0AADE941B0BE1EF00079665 /* Nib2.xib in Resources */ = {isa = PBXBuildFile; fileRef = B0AADE921B0BE1EF00079665 /* Nib2.xib */; };
 		B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */; };
@@ -19,8 +21,6 @@
 		B0CAD3BB1AFE9C76004C9719 /* IBIncludedStoryboardDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CAD3BA1AFE9C76004C9719 /* IBIncludedStoryboardDemoTests.swift */; };
 		B0CAD3C61AFE9D59004C9719 /* Second.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0CAD3C41AFE9D59004C9719 /* Second.storyboard */; };
 		B0CAD3C81AFE9E01004C9719 /* IBIncludedStoryboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CAD3C71AFE9E01004C9719 /* IBIncludedStoryboard.swift */; };
-		B0CAD3CA1AFE9FD8004C9719 /* Nibs.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0CAD3C91AFE9FD8004C9719 /* Nibs.storyboard */; };
-		B0D1E46B1B011B2D00C03799 /* IBIncludedNib.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D1E4671B011B2D00C03799 /* IBIncludedNib.swift */; };
 		B0D1E46C1B011B2D00C03799 /* Nib.xib in Resources */ = {isa = PBXBuildFile; fileRef = B0D1E4691B011B2D00C03799 /* Nib.xib */; };
 		B0D1E46D1B011B2D00C03799 /* NibController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D1E46A1B011B2D00C03799 /* NibController.swift */; };
 /* End PBXBuildFile section */
@@ -36,6 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B09402481B1CE4D9008B3990 /* Nibs.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Nibs.storyboard; path = Nibs/Nibs.storyboard; sourceTree = "<group>"; };
+		B094024C1B1CE523008B3990 /* IBIncludedNib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IBIncludedNib.swift; path = nibs/IBIncludedNib.swift; sourceTree = "<group>"; };
 		B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBIncludedWrapperViewController.swift; sourceTree = "<group>"; };
 		B0AADE921B0BE1EF00079665 /* Nib2.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Nib2.xib; sourceTree = "<group>"; };
 		B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Nib2Controller.swift; sourceTree = "<group>"; };
@@ -52,8 +54,6 @@
 		B0CAD3BA1AFE9C76004C9719 /* IBIncludedStoryboardDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IBIncludedStoryboardDemoTests.swift; sourceTree = "<group>"; };
 		B0CAD3C51AFE9D59004C9719 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Second.storyboard; sourceTree = "<group>"; };
 		B0CAD3C71AFE9E01004C9719 /* IBIncludedStoryboard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBIncludedStoryboard.swift; sourceTree = "<group>"; };
-		B0CAD3C91AFE9FD8004C9719 /* Nibs.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Nibs.storyboard; path = nibs/Nibs.storyboard; sourceTree = "<group>"; };
-		B0D1E4671B011B2D00C03799 /* IBIncludedNib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IBIncludedNib.swift; path = Nibs/IBIncludedNib.swift; sourceTree = "<group>"; };
 		B0D1E4691B011B2D00C03799 /* Nib.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Nib.xib; sourceTree = "<group>"; };
 		B0D1E46A1B011B2D00C03799 /* NibController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NibController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -150,8 +150,8 @@
 		B0CAD3CB1AFE9FDD004C9719 /* Nibs */ = {
 			isa = PBXGroup;
 			children = (
-				B0CAD3C91AFE9FD8004C9719 /* Nibs.storyboard */,
-				B0D1E4671B011B2D00C03799 /* IBIncludedNib.swift */,
+				B094024C1B1CE523008B3990 /* IBIncludedNib.swift */,
+				B09402481B1CE4D9008B3990 /* Nibs.storyboard */,
 				B0D1E4681B011B2D00C03799 /* nib */,
 				B0AADE911B0BE1EF00079665 /* nib2 */,
 			);
@@ -250,11 +250,11 @@
 			files = (
 				B0CAD3C61AFE9D59004C9719 /* Second.storyboard in Resources */,
 				B0CAD3AA1AFE9C76004C9719 /* Main.storyboard in Resources */,
+				B09402491B1CE4D9008B3990 /* Nibs.storyboard in Resources */,
 				B0CAD3AF1AFE9C76004C9719 /* LaunchScreen.xib in Resources */,
 				B0D1E46C1B011B2D00C03799 /* Nib.xib in Resources */,
 				B0AADE941B0BE1EF00079665 /* Nib2.xib in Resources */,
 				B0CAD3AC1AFE9C76004C9719 /* Images.xcassets in Resources */,
-				B0CAD3CA1AFE9FD8004C9719 /* Nibs.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,8 +273,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */,
-				B0D1E46B1B011B2D00C03799 /* IBIncludedNib.swift in Sources */,
 				B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */,
+				B094024D1B1CE523008B3990 /* IBIncludedNib.swift in Sources */,
 				B0CAD3A51AFE9C76004C9719 /* AppDelegate.swift in Sources */,
 				B0CAD3C81AFE9E01004C9719 /* IBIncludedStoryboard.swift in Sources */,
 				B0AADE971B0BE51400079665 /* MainScene1Controller.swift in Sources */,

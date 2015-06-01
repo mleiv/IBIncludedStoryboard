@@ -34,13 +34,14 @@
                             <constraint firstItem="38o-5e-zGp" firstAttribute="leading" secondItem="bqE-w5-76X" secondAttribute="leadingMargin" constant="-16" id="sWv-Vg-sPZ"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="RTc-XL-mG9"/>
                     <connections>
-                        <segue destination="pX0-ob-aHZ" kind="show" identifier="Page2 Segue" id="xb7-7H-Ps4"/>
+                        <segue destination="pX0-ob-aHZ" kind="show" identifier="Page 2 Segue" id="4gW-WU-DNM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gF3-h4-kW5" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="282" y="261"/>
+            <point key="canvasLocation" x="1621" y="261"/>
         </scene>
         <!--Nibs Page 2-->
         <scene sceneID="xhm-zV-XAN">
@@ -50,19 +51,31 @@
                         <viewControllerLayoutGuide type="top" id="Mxp-aD-ien"/>
                         <viewControllerLayoutGuide type="bottom" id="c4p-Tn-CaR"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="l7f-qL-pxK" customClass="IBIncludedNib" customModule="IBIncludedStoryboardDemo" customModuleProvider="target">
+                    <view key="view" contentMode="scaleToFill" id="l7f-qL-pxK">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9CL-yu-57e" customClass="IBIncludedNib" customModule="IBIncludedStoryboardDemo" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="string" keyPath="nib" value="Nib2"/>
+                                    <userDefinedRuntimeAttribute type="string" keyPath="controller" value="Nib2Controller"/>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <userDefinedRuntimeAttributes>
-                            <userDefinedRuntimeAttribute type="string" keyPath="nib" value="Nib2"/>
-                            <userDefinedRuntimeAttribute type="string" keyPath="controller" value="Nib2Controller"/>
-                        </userDefinedRuntimeAttributes>
+                        <constraints>
+                            <constraint firstItem="c4p-Tn-CaR" firstAttribute="top" secondItem="9CL-yu-57e" secondAttribute="bottom" id="8co-9A-quZ"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="9CL-yu-57e" secondAttribute="trailing" constant="-16" id="ChM-LW-mfC"/>
+                            <constraint firstItem="9CL-yu-57e" firstAttribute="leading" secondItem="l7f-qL-pxK" secondAttribute="leadingMargin" constant="-16" id="ah3-7S-fxg"/>
+                            <constraint firstItem="9CL-yu-57e" firstAttribute="top" secondItem="l7f-qL-pxK" secondAttribute="topMargin" id="htN-lZ-CaG"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FfW-G8-rRh" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="966" y="261"/>
+            <point key="canvasLocation" x="2392" y="261"/>
         </scene>
     </scenes>
 </document>

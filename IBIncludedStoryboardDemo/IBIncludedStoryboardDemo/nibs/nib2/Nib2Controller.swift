@@ -6,18 +6,15 @@
 
 import UIKit
 
-class Nib2Controller: UIViewController {
+class Nib2Controller: UIViewController, IBIncludedSegueableController {
 
     @IBOutlet weak var titleLabel: UILabel!
     
     var sentValue: String = "?"
     
-    override func awakeFromNib() {
-        let x = 6
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+    
         titleLabel.text = "Sent Value: \(sentValue)"
     }
     

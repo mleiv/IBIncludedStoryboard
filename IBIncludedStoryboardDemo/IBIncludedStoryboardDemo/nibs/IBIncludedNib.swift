@@ -2,9 +2,8 @@
 //  IBIncludedNib.swift
 //
 //  Copyright 2015 Emily Ivie
-
 //  Licensed under The MIT License
-//  For full copyright and license information, please see the LICENSE.txt
+//  For full copyright and license information, please see http://opensource.org/licenses/MIT
 //  Redistributions of files must retain the above copyright notice.
 
 import UIKit
@@ -20,37 +19,41 @@ public class IBIncludedNib: UIView{
     @IBInspectable var nib:String!
     @IBInspectable var controller:String?
     
-    private var initFromCoder:Bool = false
     private var finished = false
     private var attachedToParentViewController = false
     private var strongViewController: UIViewController?
     
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-
-    required public init(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        initFromCoder = true
-    }
+//    override public init(frame: CGRect) {
+//        super.init(frame: frame)
+//    }
+//
+//    required public init(coder aDecoder: NSCoder) {
+//        super.init(coder: aDecoder)
+//    }
 
     override public func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
-        attachNib()
+        initNibOrController()
     }
     
     override public func awakeFromNib() {
         super.awakeFromNib()
-        if initFromCoder {
-            attachNib()
-        }
+        initNibOrController()
     }
     
     override public func layoutSubviews() {
         super.layoutSubviews()
-        if initFromCoder && !attachedToParentViewController, let viewController = strongViewController, let parentViewController = findParentViewController(topViewController()) {
+        if !attachedToParentViewController, let viewController = strongViewController {
             // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
-            attachViewControllerToParent(viewController, parent: parentViewController)
+            if let parentViewController = findParentViewController(topViewController()) {
+                // deprecated modal segue, most likely
+                    attachSegueForwarders(viewController, parent: parentViewController)
+                    attachNib(viewController: viewController)
+                    attachViewControllerToParent(viewController, parent: parentViewController)
+            } else {
+                // Interface Builder, most likely
+                attachNib(viewController: viewController)
+            }
             strongViewController = nil
         }
     }
@@ -74,12 +77,9 @@ public class IBIncludedNib: UIView{
     }
     
     /**
-        Loads up the nib file for inclusion and adds its view to hierarchy. Ties it to a view controller if one is specified and adds that to hierarchy also.
-        Shares layout constraints between IBIncludedNib view and nib's view.
-    
-        Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
+        Loads up the nib controller and attaches to hierarchy. If no controller, moves on to initializing nib. If controller, wait for its segue and attachment before adding view.
     */
-    private func attachNib() {
+    private func initNibOrController() {
         if nib == nil || finished {
             return
         }
@@ -87,33 +87,45 @@ public class IBIncludedNib: UIView{
         //ibLog("IBIncludedNib: Nib name = \"\(nib)\"")
         
         let bundle = NSBundle(forClass: self.dynamicType)
-        var view:UIView!
         
-        //first retrieve the view from its controller or its nib
         if controller != nil {
             if let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
                 //This is the better way to instantiate:
                 //> let viewController = ControllerType(nibName: nib, bundle: bundle) as UIViewController
-                //But I do it this way instead so I can force the segue code to run before viewDidLoad
-                // (which we now call explicitly in attachViewControllerToParent() :/ )
+                //But then viewDidLoad() runs BEFORE attachSegueForwarders(), which is not expected segue behavior.
+                //Also, awakeFromNib() is never called ( http://stackoverflow.com/a/14764594 )
+                // ... so we are doing this in a kinda convoluted way which lets us instantiate the view controller -before- the nib view.
                 let viewController = ControllerType() as UIViewController
-                UINib(nibName: nib, bundle: bundle).instantiateWithOwner(viewController, options: nil)
-                view = viewController.view
-                viewController.awakeFromNib()
-                //hook up view controller to hierarchy so viewWillAppear() works right...
                 if let parentViewController = findParentViewController(topViewController()){
+                    attachSegueForwarders(viewController, parent: parentViewController)
+                    attachNib(viewController: viewController)
                     attachViewControllerToParent(viewController, parent: parentViewController)
-                    viewController.view = view
                 } else {
                     strongViewController = viewController //hold strong ref ourselves
                 }
             }
         } else {
-            if let nibThing = bundle.loadNibNamed(nib, owner: self, options: nil) {
-                if let nibView = nibThing.first as? UIView {
-                    view = nibView
-                }
-            }
+            attachNib(viewController: nil)
+        }
+    }
+    
+    /**
+        Initializes nib and adds its view to hierarchy. Ties it to a view controller if one was specified.
+        Shares layout constraints between IBIncludedNib view and nib's view.
+    
+        Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
+    */
+    private func attachNib(#viewController: UIViewController?) {
+        
+        let bundle = NSBundle(forClass: self.dynamicType)
+        var view:UIView!
+        
+        //instantiate nib (with or without controller)
+        if let nibThing = bundle.loadNibNamed(nib, owner: viewController, options: nil) {
+            //alternate syntax, requires no if-let :
+            //let nibThing = UINib(nibName: nib, bundle: bundle).instantiateWithOwner(viewController, options: nil)
+            viewController?.awakeFromNib() //let viewController know it's got a nib (will call viewDidLoad() on its own now)
+            view = viewController?.view ?? nibThing.first as? UIView
         }
         
         //then, add the view to the view hierarchy
@@ -141,8 +153,6 @@ public class IBIncludedNib: UIView{
         parent.addChildViewController(viewController)
         viewController.didMoveToParentViewController(parent)
         attachedToParentViewController = true
-        attachSegueForwarders(viewController, parent: parent)
-        viewController.viewDidLoad()
     }
     
     /**
@@ -157,6 +167,7 @@ public class IBIncludedNib: UIView{
             if let placeholder = topController as? IBIncludedWrapperViewController {
                 placeholder.addIncludedViewController(viewController)
                 // this will run any waiting prepareForSegue functions now, and check our included controller for any prepareForSegue functions in the future.
+                break
             }
             topController = topController?.parentViewController
         }
@@ -242,7 +253,7 @@ public class IBIncludedNib: UIView{
     */
     private func ibLog(message: String, forClass xClass: AnyClass? = nil) {
         // command line following to view output from Interface Builder > open /tmp/XcodeLiveRendering.log
-        #if TARGET_INTERFACE_BUILDER
+        //#if TARGET_INTERFACE_BUILDER
             let logPath = "/tmp/XcodeLiveRendering.log"
             if !NSFileManager.defaultManager().fileExistsAtPath(logPath) {
                 NSFileManager.defaultManager().createFileAtPath(logPath, contents: NSData(), attributes: nil)
@@ -254,6 +265,6 @@ public class IBIncludedNib: UIView{
             let application: AnyObject? = bundle.objectForInfoDictionaryKey("CFBundleName")
             let data = "\(date) \(application) \(message)\n".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
             fileHandle?.writeData(data!)
-        #endif
+        //#endif
     }
 }

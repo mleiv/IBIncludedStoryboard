@@ -108,6 +108,7 @@
                             <userDefinedRuntimeAttribute type="string" keyPath="storyboard" value="Nibs"/>
                         </userDefinedRuntimeAttributes>
                     </view>
+                    <navigationItem key="navigationItem" id="ZBV-4s-PLy"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="GVy-cO-VRr" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

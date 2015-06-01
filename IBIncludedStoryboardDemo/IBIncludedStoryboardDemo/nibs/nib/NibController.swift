@@ -13,6 +13,10 @@ class NibController: UIViewController, IBIncludedSegueableController {
     
     var storedValue = "Unset"
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -33,7 +37,7 @@ class NibController: UIViewController, IBIncludedSegueableController {
         //    }
         //}
 
-        parentViewController?.performSegueWithIdentifier("Page2 Segue", sender: sender)
+        parentViewController?.performSegueWithIdentifier("Page 2 Segue", sender: sender)
     }
     
     lazy var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType = { (destination) in
