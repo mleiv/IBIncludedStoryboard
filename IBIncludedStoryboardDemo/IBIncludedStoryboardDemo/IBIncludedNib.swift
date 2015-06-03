@@ -173,30 +173,18 @@ public class IBIncludedNib: UIView{
     }
     
     /**
-        Locates the top-most view controller that is under the tab/nav controllers
-        
-        :param: topController   (optional) view controller to start looking under, defaults to window's rootViewController
+        Locates the top-most view controller
+    
         :returns: an (optional) view controller
     */
-    private func topViewController(_ topController: UIViewController? = nil) -> UIViewController? {
-        let controller: UIViewController? = {
-            if let controller = topController ?? UIApplication.sharedApplication().keyWindow?.rootViewController {
-                return controller
-            } else if let window = UIApplication.sharedApplication().delegate?.window {
-                //this is only called if window.makeKeyAndVisible() didn't happen...?
-                return window?.rootViewController
-            }
-            return nil
-        }()
-        //println("top ? \(controller?.dynamicType) \(controller?.title)")
-        if let tabController = controller as? UITabBarController, let nextController = tabController.selectedViewController {
-            return topViewController(nextController)
-        } else if let navController = controller as? UINavigationController, let nextController = navController.visibleViewController {
-            return topViewController(nextController)
-        } else if let nextController = controller?.presentedViewController {
-            return topViewController(nextController)
+    private func topViewController() -> UIViewController? {
+        if let controller = UIApplication.sharedApplication().keyWindow?.rootViewController {
+            return controller
+        } else if let window = UIApplication.sharedApplication().delegate?.window {
+            //this is only called if window.makeKeyAndVisible() didn't happen...?
+            return window?.rootViewController
         }
-        return controller
+        return nil
     }
     
     /**
