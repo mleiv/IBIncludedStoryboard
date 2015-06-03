@@ -12,6 +12,10 @@ class Nib2Controller: UIViewController, IBIncludedSegueableController {
     
     var sentValue: String = "?"
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
     

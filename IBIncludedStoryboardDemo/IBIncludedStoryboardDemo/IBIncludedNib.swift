@@ -19,7 +19,15 @@ public class IBIncludedNib: UIView{
     @IBInspectable var nib:String!
     @IBInspectable var controller:String?
     
+    private var isInterfaceBuilder: Bool = {
+        #if TARGET_INTERFACE_BUILDER
+            return true
+        #else
+            return false
+        #endif
+    }()
     private var finished = false
+    private var viewAttached = false
     private var attachedToParentViewController = false
     private var strongViewController: UIViewController?
     
@@ -33,6 +41,7 @@ public class IBIncludedNib: UIView{
 
     override public func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
+        // BTW - nested IBIncluded{Thing} do not use this
         initNibOrController()
     }
     
@@ -42,20 +51,17 @@ public class IBIncludedNib: UIView{
     }
     
     override public func layoutSubviews() {
-        super.layoutSubviews()
         if !attachedToParentViewController, let viewController = strongViewController {
             // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
             if let parentViewController = findParentViewController(activeViewController(topViewController())) {
                 // deprecated modal segue, most likely
-                    attachSegueForwarders(viewController, parent: parentViewController)
-                    attachNib(viewController: viewController)
-                    attachViewControllerToParent(viewController, parent: parentViewController)
-            } else {
-                // Interface Builder, most likely
+                attachSegueForwarders(viewController, parent: parentViewController)
                 attachNib(viewController: viewController)
+                attachViewControllerToParent(viewController, parent: parentViewController)
+                strongViewController = nil
             }
-            strongViewController = nil
         }
+        super.layoutSubviews()
     }
     
     /**
@@ -80,29 +86,29 @@ public class IBIncludedNib: UIView{
         Loads up the nib controller and attaches to hierarchy. If no controller, moves on to initializing nib. If controller, wait for its segue and attachment before adding view.
     */
     private func initNibOrController() {
-        if nib == nil || finished {
-            return
-        }
+        if nib == nil || finished { return }
         finished = true
         //ibLog("IBIncludedNib: Nib name = \"\(nib)\"")
         
         let bundle = NSBundle(forClass: self.dynamicType)
         
-        if controller != nil {
-            if let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
-                //This is the better way to instantiate:
-                //> let viewController = ControllerType(nibName: nib, bundle: bundle) as UIViewController
-                //But then viewDidLoad() runs BEFORE attachSegueForwarders(), which is not expected segue behavior.
-                //Also, awakeFromNib() is never called ( http://stackoverflow.com/a/14764594 )
-                // ... so we are doing this in a kinda convoluted way which lets us instantiate the view controller -before- the nib view.
-                let viewController = ControllerType() as UIViewController
-                if let parentViewController = findParentViewController(activeViewController(topViewController())) {
-                    attachSegueForwarders(viewController, parent: parentViewController)
+        if controller != nil, let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
+            //This is the better way to instantiate:
+            //> let viewController = ControllerType(nibName: nib, bundle: bundle) as UIViewController
+            //But then viewDidLoad() runs BEFORE attachSegueForwarders(), which is not expected segue behavior.
+            //Also, awakeFromNib() is never called ( http://stackoverflow.com/a/14764594 )
+            // ... so we are doing this in a kinda convoluted way which lets us instantiate the view controller -before- the nib view.
+            let viewController = ControllerType() as UIViewController
+            if let parentViewController = findParentViewController(activeViewController(topViewController())) {
+                attachSegueForwarders(viewController, parent: parentViewController)
+                attachNib(viewController: viewController)
+                attachViewControllerToParent(viewController, parent: parentViewController)
+            } else {
+                if isInterfaceBuilder {
                     attachNib(viewController: viewController)
-                    attachViewControllerToParent(viewController, parent: parentViewController)
-                } else {
-                    strongViewController = viewController //hold strong ref ourselves
+                    //if we don't do this now, nested IBIncluded{Thing} may never be loaded :/
                 }
+                strongViewController = viewController
             }
         } else {
             attachNib(viewController: nil)
@@ -116,29 +122,31 @@ public class IBIncludedNib: UIView{
         Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
     */
     private func attachNib(#viewController: UIViewController?) {
+        if viewAttached { return }
         
         let bundle = NSBundle(forClass: self.dynamicType)
-        var view:UIView!
         
         //instantiate nib (with or without controller)
         if let nibThing = bundle.loadNibNamed(nib, owner: viewController, options: nil) {
             //alternate syntax, requires no if-let :
             //let nibThing = UINib(nibName: nib, bundle: bundle).instantiateWithOwner(viewController, options: nil)
-            viewController?.awakeFromNib() //let viewController know it's got a nib (will call viewDidLoad() on its own now)
-            view = viewController?.view ?? nibThing.first as? UIView
-        }
-        
-        //then, add the view to the view hierarchy
-        if view != nil {
-            self.addSubview(view)
-            //tell nib to resize to fit inside this view:
-            view.setTranslatesAutoresizingMaskIntoConstraints(false)
-            let bindings = ["view": view]
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
-            //clear out top-level view visibility, so only subview shows
-            self.opaque = false
-            self.backgroundColor = UIColor.clearColor()
+            if let view = viewController?.view ?? nibThing.first as? UIView {
+            
+                viewController?.awakeFromNib() //let viewController know it's got a nib (will call viewDidLoad() on its own now)
+                
+                //then, add the view to the view hierarchy
+                self.addSubview(view)
+                //tell nib to resize to fit inside this view:
+                view.setTranslatesAutoresizingMaskIntoConstraints(false)
+                let bindings = ["view": view]
+                self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
+                self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
+                //clear out top-level view visibility, so only subview shows
+                self.opaque = false
+                self.backgroundColor = UIColor.clearColor()
+                
+                viewAttached = true
+            }
         }
     }
     

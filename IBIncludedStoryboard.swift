@@ -22,8 +22,15 @@ public class IBIncludedStoryboard: UIView {
     @IBInspectable var id: String?
     @IBInspectable var treatAsNib: Bool = false
     
+    private var isInterfaceBuilder: Bool = {
+        #if TARGET_INTERFACE_BUILDER
+            return true
+        #else
+            return false
+        #endif
+    }()
     private var finished = false
-    private var isInterfaceBuilder = false
+    private var viewAttached = false
     private var attachedToParentViewController = false
     private var strongViewController: UIViewController?
 
@@ -37,7 +44,7 @@ public class IBIncludedStoryboard: UIView {
 
     override public func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
-        isInterfaceBuilder = true
+        // BTW - nested IBIncluded{Thing} do not use this
         attachStoryboard()
     }
     
@@ -50,13 +57,11 @@ public class IBIncludedStoryboard: UIView {
         if !attachedToParentViewController, let viewController = strongViewController {
             if let parentViewController = findParentViewController(activeViewController(topViewController())) {
                 // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
+                attachSegueForwarders(viewController, parent: parentViewController)
                 attachView(viewController: viewController)
                 attachViewControllerToParent(viewController, parent: parentViewController)
                 strongViewController = nil
-            } else if isInterfaceBuilder {
-                attachView(viewController: viewController)
-                strongViewController = nil
-            }
+            } 
         }
         super.layoutSubviews()
     }
@@ -83,18 +88,21 @@ public class IBIncludedStoryboard: UIView {
         Shares layout constraints between IBIncludedStoryboard view and included view.
     */
     private func attachStoryboard() {
-        if storyboard == nil || finished {
-            return
-        }
+        if storyboard == nil || finished { return }
         finished = true
         
         let bundle = NSBundle(forClass: self.dynamicType)
         if let viewController = getViewController(bundle: bundle) {
             //hook up view controller to hierarchy so viewWillAppear() works right...
             if let parentViewController = findParentViewController(activeViewController(topViewController())) {
+                attachSegueForwarders(viewController, parent: parentViewController)
                 attachView(viewController: viewController)
                 attachViewControllerToParent(viewController, parent: parentViewController)
             } else {
+                if isInterfaceBuilder {
+                    attachView(viewController: viewController)
+                    //if we don't do this now, nested IBIncluded{Thing} may never be loaded :/
+                }
                 strongViewController = viewController
             }
         }
@@ -107,11 +115,7 @@ public class IBIncludedStoryboard: UIView {
         Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
     */
     private func attachView(#viewController: UIViewController?) {
-        
-        var view = viewController?.view as UIView!
-        
-        //then, add the view to the view hierarchy
-        if view != nil {
+        if !viewAttached, let view = viewController?.view as UIView! {
             self.addSubview(view)
             //tell nib to resize to fit inside this view:
             view.setTranslatesAutoresizingMaskIntoConstraints(false)
@@ -121,6 +125,8 @@ public class IBIncludedStoryboard: UIView {
             //clear out top-level view visibility, so only subview shows
             self.opaque = false
             self.backgroundColor = UIColor.clearColor()
+            
+            viewAttached = true
         }
     }
     
@@ -136,7 +142,6 @@ public class IBIncludedStoryboard: UIView {
         viewController.didMoveToParentViewController(parent)
         attachedToParentViewController = true
         transferControllerProperties(viewController, parent: parent)
-        attachSegueForwarders(viewController, parent: parent)
     }
     
     /**
