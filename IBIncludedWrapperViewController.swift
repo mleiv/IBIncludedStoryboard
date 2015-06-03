@@ -4,7 +4,7 @@
 //  Copyright 2015 Emily Ivie
 
 //  Licensed under The MIT License
-//  For full copyright and license information, please see the LICENSE.txt
+//  For full copyright and license information, please see http://opensource.org/licenses/MIT
 //  Redistributions of files must retain the above copyright notice.
 //
 
@@ -86,6 +86,10 @@ public class IBIncludedWrapperViewController: UIViewController {
         Save any included view controllers that may need segue handling later.
     */
     public func addIncludedViewController(viewController: UIViewController) {
+        // skip any navigation/tab controllers
+        if let newController = activeViewController(viewController) where newController != viewController {
+            return addIncludedViewController(newController)
+        }
         // only save segue-handling controllers
         if let includedController = viewController as? IBIncludedSegueableController {
             includedViewControllers.append(includedController)
@@ -94,5 +98,25 @@ public class IBIncludedWrapperViewController: UIViewController {
         for closure in prepareAfterSegueClosures {
             closure(viewController)
         }
+    }
+    
+    /**
+        Locates the top-most view controller that is under the tab/nav controllers
+    
+        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
+        :returns: an (optional) view controller
+    */
+    private func activeViewController(controller: UIViewController!) -> UIViewController? {
+        if controller == nil {
+            return nil
+        }
+        if let tabController = controller as? UITabBarController, let nextController = tabController.selectedViewController {
+            return activeViewController(nextController)
+        } else if let navController = controller as? UINavigationController, let nextController = navController.visibleViewController {
+            return activeViewController(nextController)
+        } else if let nextController = controller.presentedViewController {
+            return activeViewController(nextController)
+        }
+        return controller
     }
 }

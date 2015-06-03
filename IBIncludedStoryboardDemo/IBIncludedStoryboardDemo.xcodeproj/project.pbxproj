@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B089B0371B1E7C260079F713 /* IBIncludedNib.swift in Sources */ = {isa = PBXBuildFile; fileRef = B089B0361B1E7C260079F713 /* IBIncludedNib.swift */; };
 		B09402491B1CE4D9008B3990 /* Nibs.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B09402481B1CE4D9008B3990 /* Nibs.storyboard */; };
-		B094024D1B1CE523008B3990 /* IBIncludedNib.swift in Sources */ = {isa = PBXBuildFile; fileRef = B094024C1B1CE523008B3990 /* IBIncludedNib.swift */; };
 		B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */; };
 		B0AADE941B0BE1EF00079665 /* Nib2.xib in Resources */ = {isa = PBXBuildFile; fileRef = B0AADE921B0BE1EF00079665 /* Nib2.xib */; };
 		B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */; };
@@ -36,8 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B089B0361B1E7C260079F713 /* IBIncludedNib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBIncludedNib.swift; sourceTree = "<group>"; };
 		B09402481B1CE4D9008B3990 /* Nibs.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Nibs.storyboard; path = Nibs/Nibs.storyboard; sourceTree = "<group>"; };
-		B094024C1B1CE523008B3990 /* IBIncludedNib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IBIncludedNib.swift; path = nibs/IBIncludedNib.swift; sourceTree = "<group>"; };
 		B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBIncludedWrapperViewController.swift; sourceTree = "<group>"; };
 		B0AADE921B0BE1EF00079665 /* Nib2.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Nib2.xib; sourceTree = "<group>"; };
 		B0AADE931B0BE1EF00079665 /* Nib2Controller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Nib2Controller.swift; sourceTree = "<group>"; };
@@ -108,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				B0CAD3C71AFE9E01004C9719 /* IBIncludedStoryboard.swift */,
+				B089B0361B1E7C260079F713 /* IBIncludedNib.swift */,
 				B0AADE8F1B0BE04C00079665 /* IBIncludedWrapperViewController.swift */,
 				B0CAD3A81AFE9C76004C9719 /* Main.storyboard */,
 				B0AADE961B0BE51400079665 /* MainScene1Controller.swift */,
@@ -150,7 +151,6 @@
 		B0CAD3CB1AFE9FDD004C9719 /* Nibs */ = {
 			isa = PBXGroup;
 			children = (
-				B094024C1B1CE523008B3990 /* IBIncludedNib.swift */,
 				B09402481B1CE4D9008B3990 /* Nibs.storyboard */,
 				B0D1E4681B011B2D00C03799 /* nib */,
 				B0AADE911B0BE1EF00079665 /* nib2 */,
@@ -274,7 +274,7 @@
 			files = (
 				B0AADE951B0BE1EF00079665 /* Nib2Controller.swift in Sources */,
 				B0AADE901B0BE04C00079665 /* IBIncludedWrapperViewController.swift in Sources */,
-				B094024D1B1CE523008B3990 /* IBIncludedNib.swift in Sources */,
+				B089B0371B1E7C260079F713 /* IBIncludedNib.swift in Sources */,
 				B0CAD3A51AFE9C76004C9719 /* AppDelegate.swift in Sources */,
 				B0CAD3C81AFE9E01004C9719 /* IBIncludedStoryboard.swift in Sources */,
 				B0AADE971B0BE51400079665 /* MainScene1Controller.swift in Sources */,

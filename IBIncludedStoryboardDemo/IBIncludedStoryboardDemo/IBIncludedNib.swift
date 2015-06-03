@@ -45,7 +45,7 @@ public class IBIncludedNib: UIView{
         super.layoutSubviews()
         if !attachedToParentViewController, let viewController = strongViewController {
             // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
-            if let parentViewController = findParentViewController(topViewController()) {
+            if let parentViewController = findParentViewController(activeViewController(topViewController())) {
                 // deprecated modal segue, most likely
                     attachSegueForwarders(viewController, parent: parentViewController)
                     attachNib(viewController: viewController)
@@ -96,7 +96,7 @@ public class IBIncludedNib: UIView{
                 //Also, awakeFromNib() is never called ( http://stackoverflow.com/a/14764594 )
                 // ... so we are doing this in a kinda convoluted way which lets us instantiate the view controller -before- the nib view.
                 let viewController = ControllerType() as UIViewController
-                if let parentViewController = findParentViewController(topViewController()){
+                if let parentViewController = findParentViewController(activeViewController(topViewController())) {
                     attachSegueForwarders(viewController, parent: parentViewController)
                     attachNib(viewController: viewController)
                     attachViewControllerToParent(viewController, parent: parentViewController)
@@ -167,7 +167,6 @@ public class IBIncludedNib: UIView{
             if let placeholder = topController as? IBIncludedWrapperViewController {
                 placeholder.addIncludedViewController(viewController)
                 // this will run any waiting prepareForSegue functions now, and check our included controller for any prepareForSegue functions in the future.
-                break
             }
             topController = topController?.parentViewController
         }
@@ -201,6 +200,26 @@ public class IBIncludedNib: UIView{
     }
     
     /**
+        Locates the top-most view controller that is under the tab/nav controllers
+    
+        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
+        :returns: an (optional) view controller
+    */
+    private func activeViewController(controller: UIViewController!) -> UIViewController? {
+        if controller == nil {
+            return nil
+        }
+        if let tabController = controller as? UITabBarController, let nextController = tabController.selectedViewController {
+            return activeViewController(nextController)
+        } else if let navController = controller as? UINavigationController, let nextController = navController.visibleViewController {
+            return activeViewController(nextController)
+        } else if let nextController = controller.presentedViewController {
+            return activeViewController(nextController)
+        }
+        return controller
+    }
+    
+    /**
         Recursively deep-dives into view controller hierarchy looking for the closest view controller containing this IBIncludedNib.
         
         :param: topController   Whatever view controller we are currently diving into.
@@ -218,12 +237,10 @@ public class IBIncludedNib: UIView{
         }
         // second try, top view controller (most generic)
         if let topView = topController?.view where findSelfInViews(topView) {
-            //println("parent \(topController?.title) \(topController?.dynamicType)")
             return topController
         }
         return nil
     }
-    
     
     /**
         Recursively searches through a view and all its child views for this IBIncludedNib

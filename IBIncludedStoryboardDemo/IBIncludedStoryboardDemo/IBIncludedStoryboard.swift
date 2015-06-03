@@ -7,6 +7,7 @@
 //  For full copyright and license information, please see http://opensource.org/licenses/MIT
 //  Redistributions of files must retain the above copyright notice.
 
+
 import UIKit
 
 /**
@@ -17,44 +18,49 @@ import UIKit
 @IBDesignable
 public class IBIncludedStoryboard: UIView {
 
-    @IBInspectable var storyboard:String!
-    @IBInspectable var id:String?
+    @IBInspectable var storyboard: String!
+    @IBInspectable var id: String?
+    @IBInspectable var treatAsNib: Bool = false
     
-    private var initFromCoder:Bool = false
     private var finished = false
+    private var isInterfaceBuilder = false
     private var attachedToParentViewController = false
     private var strongViewController: UIViewController?
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-
-    required public init(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        initFromCoder = true
-    }
+//    override init(frame: CGRect) {
+//        super.init(frame: frame)
+//    }
+//
+//    required public init(coder aDecoder: NSCoder) {
+//        super.init(coder: aDecoder)
+//    }
 
     override public func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
+        isInterfaceBuilder = true
         attachStoryboard()
     }
     
     override public func awakeFromNib() {
         super.awakeFromNib()
-        if initFromCoder {
-            attachStoryboard()
-        }
+        attachStoryboard()
     }
     
     override public func layoutSubviews() {
-        super.layoutSubviews()
-        if initFromCoder && !attachedToParentViewController, let viewController = strongViewController, let parentViewController = findParentViewController(topViewController()) {
-            // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
-            attachViewControllerToParent(viewController, parent: parentViewController)
-            strongViewController = nil
+        if !attachedToParentViewController, let viewController = strongViewController {
+            if let parentViewController = findParentViewController(activeViewController(topViewController())) {
+                // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
+                attachSegueForwarders(viewController, parent: parentViewController)
+                attachView(viewController: viewController)
+                attachViewControllerToParent(viewController, parent: parentViewController)
+                strongViewController = nil
+            } else if isInterfaceBuilder {
+                attachView(viewController: viewController)
+                strongViewController = nil
+            }
         }
+        super.layoutSubviews()
     }
-    
     
     /**
         Instantiates target storyboard's view controller using IBDesignable properties.
@@ -85,22 +91,39 @@ public class IBIncludedStoryboard: UIView {
         
         let bundle = NSBundle(forClass: self.dynamicType)
         if let viewController = getViewController(bundle: bundle) {
-            strongViewController = viewController
             //hook up view controller to hierarchy so viewWillAppear() works right...
-            if let parentViewController = findParentViewController(topViewController()){
+            if let parentViewController = findParentViewController(activeViewController(topViewController())) {
+                attachSegueForwarders(viewController, parent: parentViewController)
+                attachView(viewController: viewController)
                 attachViewControllerToParent(viewController, parent: parentViewController)
+            } else {
+                strongViewController = viewController
             }
-            var view = viewController.view
+        }
+    }
+    
+    /**
+        Initializes nib and adds its view to hierarchy. Ties it to a view controller if one was specified.
+        Shares layout constraints between IBIncludedNib view and nib's view.
+    
+        Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
+    */
+    private func attachView(#viewController: UIViewController?) {
+        
+        var view = viewController?.view as UIView!
+        
+        //then, add the view to the view hierarchy
+        if view != nil {
             self.addSubview(view)
-            //tell storyboard page to resize to fit inside this page:
+            //tell nib to resize to fit inside this view:
             view.setTranslatesAutoresizingMaskIntoConstraints(false)
-            var bindings: [NSObject: AnyObject] = ["view": view]
+            let bindings = ["view": view]
             self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
             self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
+            //clear out top-level view visibility, so only subview shows
             self.opaque = false
             self.backgroundColor = UIColor.clearColor()
         }
-        
     }
     
     /**
@@ -115,7 +138,6 @@ public class IBIncludedStoryboard: UIView {
         viewController.didMoveToParentViewController(parent)
         attachedToParentViewController = true
         transferControllerProperties(viewController, parent: parent)
-        attachSegueForwarders(viewController, parent: parent)
     }
     
     /**
@@ -130,34 +152,42 @@ public class IBIncludedStoryboard: UIView {
             if let placeholder = topController as? IBIncludedWrapperViewController {
                 placeholder.addIncludedViewController(viewController)
                 // this will run any waiting prepareForSegue functions now, and check our included controller for any prepareForSegue functions in the future.
-                break
             }
             topController = topController?.parentViewController
         }
     }
     
     /**
-        Locates the top-most view controller that is under the tab/nav controllers
+        Locates the top-most view controller
     
-        :param: topController   (optional) view controller to start looking under, defaults to window's rootViewController
         :returns: an (optional) view controller
     */
-    private func topViewController(_ topController: UIViewController? = nil) -> UIViewController? {
-        let controller: UIViewController? = {
-            if let controller = topController ?? UIApplication.sharedApplication().keyWindow?.rootViewController {
-                return controller
-            } else if let window = UIApplication.sharedApplication().delegate?.window {
-                //this is only called if window.makeKeyAndVisible() didn't happen...?
-                return window?.rootViewController
-            }
+    private func topViewController() -> UIViewController? {
+        if let controller = UIApplication.sharedApplication().keyWindow?.rootViewController {
+            return controller
+        } else if let window = UIApplication.sharedApplication().delegate?.window {
+            //this is only called if window.makeKeyAndVisible() didn't happen...?
+            return window?.rootViewController
+        }
+        return nil
+    }
+    
+    /**
+        Locates the top-most view controller that is under the tab/nav controllers
+    
+        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
+        :returns: an (optional) view controller
+    */
+    private func activeViewController(controller: UIViewController!) -> UIViewController? {
+        if controller == nil {
             return nil
-        }()
+        }
         if let tabController = controller as? UITabBarController, let nextController = tabController.selectedViewController {
-            return topViewController(nextController)
+            return activeViewController(nextController)
         } else if let navController = controller as? UINavigationController, let nextController = navController.visibleViewController {
-            return topViewController(nextController)
-        } else if let nextController = controller?.presentedViewController {
-            return topViewController(nextController)
+            return activeViewController(nextController)
+        } else if let nextController = controller.presentedViewController {
+            return activeViewController(nextController)
         }
         return controller
     }
@@ -210,23 +240,29 @@ public class IBIncludedStoryboard: UIView {
         Shared under MIT License http://opensource.org/licenses/MIT
     */
     public func transferControllerProperties(viewController: UIViewController, parent: UIViewController) {
-        parent.navigationItem.title = viewController.navigationItem.title
-        parent.navigationItem.titleView = viewController.navigationItem.titleView
-        parent.navigationItem.prompt = viewController.navigationItem.prompt
-        parent.navigationItem.hidesBackButton = viewController.navigationItem.hidesBackButton
-        parent.navigationItem.backBarButtonItem = viewController.navigationItem.backBarButtonItem
-        parent.navigationItem.rightBarButtonItem = viewController.navigationItem.rightBarButtonItem
-        parent.navigationItem.leftBarButtonItem = viewController.navigationItem.leftBarButtonItem
-        parent.navigationItem.rightBarButtonItems = viewController.navigationItem.rightBarButtonItems
-        parent.navigationItem.leftBarButtonItems = viewController.navigationItem.leftBarButtonItems
-        parent.navigationItem.leftItemsSupplementBackButton = viewController.navigationItem.leftItemsSupplementBackButton
+        if treatAsNib {
+            return
+        }
+        // skip the navigation controller/etc. :
+        let includedController = activeViewController(viewController) ?? viewController
+        
+        parent.navigationItem.title = includedController.navigationItem.title
+        parent.navigationItem.titleView = includedController.navigationItem.titleView
+        parent.navigationItem.prompt = includedController.navigationItem.prompt
+        parent.navigationItem.hidesBackButton = includedController.navigationItem.hidesBackButton
+        parent.navigationItem.backBarButtonItem = includedController.navigationItem.backBarButtonItem
+        parent.navigationItem.rightBarButtonItem = includedController.navigationItem.rightBarButtonItem
+        parent.navigationItem.leftBarButtonItem = includedController.navigationItem.leftBarButtonItem
+        parent.navigationItem.rightBarButtonItems = includedController.navigationItem.rightBarButtonItems
+        parent.navigationItem.leftBarButtonItems = includedController.navigationItem.leftBarButtonItems
+        parent.navigationItem.leftItemsSupplementBackButton = includedController.navigationItem.leftItemsSupplementBackButton
         
         if parent.tabBarController != nil {
-            viewController.tabBarItem = parent.tabBarItem
+            includedController.tabBarItem = parent.tabBarItem
         }
         
         let editButton = parent.editButtonItem()
-        let otherEditButton = viewController.editButtonItem()
+        let otherEditButton = includedController.editButtonItem()
         editButton.enabled = otherEditButton.enabled
         editButton.image = otherEditButton.image
         editButton.landscapeImagePhone = otherEditButton.landscapeImagePhone
@@ -241,24 +277,26 @@ public class IBIncludedStoryboard: UIView {
         editButton.width = otherEditButton.width
         editButton.customView = otherEditButton.customView
         editButton.tintColor = otherEditButton.tintColor
-        
-        parent.modalTransitionStyle = viewController.modalTransitionStyle
-        parent.modalPresentationStyle = viewController.modalPresentationStyle
-        parent.definesPresentationContext = viewController.definesPresentationContext
-        parent.providesPresentationContextTransitionStyle = viewController.providesPresentationContextTransitionStyle
 
-        parent.preferredContentSize = viewController.preferredContentSize
-        parent.modalInPopover = viewController.modalInPopover
+        parent.modalTransitionStyle = includedController.modalTransitionStyle
+        parent.modalPresentationStyle = includedController.modalPresentationStyle
+        parent.definesPresentationContext = includedController.definesPresentationContext
+        parent.providesPresentationContextTransitionStyle = includedController.providesPresentationContextTransitionStyle
 
-        parent.title = viewController.title
-        parent.hidesBottomBarWhenPushed = viewController.hidesBottomBarWhenPushed
-        parent.editing = viewController.editing
+        parent.preferredContentSize = includedController.preferredContentSize
+        parent.modalInPopover = includedController.modalInPopover
 
-        parent.automaticallyAdjustsScrollViewInsets = viewController.automaticallyAdjustsScrollViewInsets
-        parent.edgesForExtendedLayout = viewController.edgesForExtendedLayout
-        parent.extendedLayoutIncludesOpaqueBars = viewController.extendedLayoutIncludesOpaqueBars
-        parent.modalPresentationCapturesStatusBarAppearance = viewController.modalPresentationCapturesStatusBarAppearance
-        parent.transitioningDelegate = viewController.transitioningDelegate
+        if includedController.title != nil { // this messes with tab bar names
+            parent.title = includedController.title
+        }
+        parent.hidesBottomBarWhenPushed = includedController.hidesBottomBarWhenPushed
+        parent.editing = includedController.editing
+
+        parent.automaticallyAdjustsScrollViewInsets = includedController.automaticallyAdjustsScrollViewInsets
+        parent.edgesForExtendedLayout = includedController.edgesForExtendedLayout
+        parent.extendedLayoutIncludesOpaqueBars = includedController.extendedLayoutIncludesOpaqueBars
+        parent.modalPresentationCapturesStatusBarAppearance = includedController.modalPresentationCapturesStatusBarAppearance
+        parent.transitioningDelegate = includedController.transitioningDelegate
     }
     
     /**
