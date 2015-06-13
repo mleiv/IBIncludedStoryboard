@@ -4,7 +4,13 @@
 
 Storyboards can easily get too large and they are slow and difficut to collaborate on without conflicts. IBIncludedStoryboard allows developers to break up their application into sensible chunks and link the storyboards visually.
 
-To use, simply add the IBIncludedStoryboard.swift file to your project. 
+## News: 2015-06-13
+
+I have pulled IBIncludedNib and IBIncludedStoryboard together into the same file (IBIncludedThing) since they share so much code. 
+
+## Including in Your App
+
+To use, simply add the IBIncludedThing.swift file to your project. 
 
 Then, create a second storyboard file. If you set the Storyboard ID properties for your second storyboard scenes, you will have the option in the main storyboard to jump to any scene you want, otherwise it will default to the root/initial scene. 
 
@@ -23,7 +29,7 @@ That's it! You now have linked storyboards. All of your selected scene attribute
 
 ## Using With IBIncludedNib
 
-I have another Swift class called [IBIncludedNib](https://github.com/mleiv/IBIncludedNib), which does the same thing as IBIncludedStoryboard, but with nibs. This allows for further encapsulation of layouts. In my applications, I use nibs for all the scenes, gather them in small groups of storyboards with IBIncludedNib, and link the storyboards with IBIncludedStoryboard.
+See [IBIncludedNib](https://github.com/mleiv/IBIncludedNib), for a nib-specific example of how to use this class (you do not need any additional code to use IBIncludedNib).
 
 **Quick Rundown**
 

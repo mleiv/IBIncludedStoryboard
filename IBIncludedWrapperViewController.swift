@@ -10,10 +10,13 @@
 
 import UIKit
 
+//MARK: IBIncludedSegueableController protocol
+
 public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
 
 /**
     Protocol to identify nested IBIncluded{Thing} view controllers that need to share data during prepareForSegue.
+    Note: This is not a default protocol applied to all IBIncluded{Thing} - you have to apply it individually to nibs/storyboards that are sharing data.
 */
 @objc public protocol IBIncludedSegueableController {
     /**
@@ -29,11 +32,15 @@ public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
 }
 
 
+//MARK: IBIncludedWrapperViewController definition
+
 /**
     Forwards any prepareForSegue behavior between nested IBIncluded{Thing} view controllers.
-    Assign all IBIncluded{Thing} placeholder/wrapper view controllers to this class.
+    Runs for all nested IBIncludedWrapperViewControllers, so you can have some pretty intricately-nested levels of stroyboards/nibs and they can still share data, so long as a segue is involved.
+
+    Assign this class to all IBIncluded{Thing} placeholder/wrapper view controllers involved at any level in sharing data between controllers.
 */
-public class IBIncludedWrapperViewController: UIViewController {
+public class IBIncludedWrapperViewController: UIViewController, IBIncludedSegueableWrapper {
 
     internal var includedViewControllers = [IBIncludedSegueableController]()
     
@@ -47,12 +54,21 @@ public class IBIncludedWrapperViewController: UIViewController {
         Can handle scenarios where one half of the segue in an IBIncluded{Thing} but the other half isn't.
     */
     override public func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        //super.prepareForSegue(segue, sender: sender) //doesn't help propogate up the segue
+        
+        forwardToParentControllers(segue, sender: sender)
+        
         // forward for pre-segue preparations:
         for includedController in includedViewControllers {
             includedController.prepareBeforeIBIncludedSegue?(segue, sender: sender)
         }
         // share post-segue closures for later execution:
-        if let includedDestination = segue.destinationViewController as? IBIncludedWrapperViewController {
+        
+        // skip any navigation/tab controllers
+        let destinationController = activeViewController(segue.destinationViewController as? UIViewController)
+        if destinationController == nil { return }
+        
+        if let includedDestination = destinationController as? IBIncludedWrapperViewController {
             // check self for any seguable closures (if we aren't IBIncluded{Thing} but are segueing to one):
             if let selfSegue = self as? IBIncludedSegueableController {
                 if let closure = selfSegue.prepareAfterIBIncludedSegue {
@@ -66,17 +82,17 @@ public class IBIncludedWrapperViewController: UIViewController {
                 }
             }
         // execute now on top-level destination (if we are segueing from IBIncluded{Thing} to something that is not):
-        } else if let destination = segue.destinationViewController as? UIViewController {
+        } else if destinationController != nil {
             // check self for any seguable closures (if we aren't IBIncluded{Thing} but are segueing to one):
             if let selfSegue = self as? IBIncludedSegueableController {
                 if let closure = selfSegue.prepareAfterIBIncludedSegue {
-                    closure(destination)
+                    closure(destinationController!)
                 }
             }
             // check all seguable closures now:
             for includedController in includedViewControllers {
                 if let closure = includedController.prepareAfterIBIncludedSegue {
-                    closure(destination)
+                    closure(destinationController!)
                 }
             }
         }
@@ -97,6 +113,25 @@ public class IBIncludedWrapperViewController: UIViewController {
         // but we don't care what we run our saved prepareAfterIBIncludedSegue closures on:
         for closure in prepareAfterSegueClosures {
             closure(viewController)
+        }
+    }
+    
+    /**
+        Propogates the segue up to parent IBIncludedWrapperViewControllers so they can also run the prepareAfterIBIncludedSegue() on their included things. 
+        
+        Since any IBIncluded{Thing} attaches to all IBIncludedWrapperViewControllers in the hierarchy, I am not sure why this is required, but I know the prior version didn't work in some heavily-nested scenarios without this addition.
+    
+        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
+        :returns: an (optional) view controller
+    */
+    private func forwardToParentControllers(segue: UIStoryboardSegue, sender: AnyObject?) {
+        var currentController = self as UIViewController
+        while let controller = currentController.parentViewController {
+            if let wrapperController = controller as? IBIncludedWrapperViewController {
+                wrapperController.prepareForSegue(segue, sender: sender)
+                break //this parent will do further parents
+            }
+            currentController = controller
         }
     }
     
