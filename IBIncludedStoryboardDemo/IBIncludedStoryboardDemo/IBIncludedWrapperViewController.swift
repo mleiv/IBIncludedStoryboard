@@ -81,6 +81,14 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
                     includedDestination.prepareAfterSegueClosures.append(closure)
                 }
             }
+            if includedDestination is IBIncludedSegueableController {
+                // it's a seguable controller also, so run all seguable closures now:
+                for includedController in includedViewControllers {
+                    if let closure = includedController.prepareAfterIBIncludedSegue {
+                        closure(destinationController!) //nil already tested above
+                    }
+                }
+            }
         // execute now on top-level destination (if we are segueing from IBIncluded{Thing} to something that is not):
         } else if destinationController != nil {
             // check self for any seguable closures (if we aren't IBIncluded{Thing} but are segueing to one):
@@ -129,7 +137,7 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         while let controller = currentController.parentViewController {
             if let wrapperController = controller as? IBIncludedWrapperViewController {
                 wrapperController.prepareForSegue(segue, sender: sender)
-                break //this parent will do further parents
+                break //wrapperController will do further parents
             }
             currentController = controller
         }

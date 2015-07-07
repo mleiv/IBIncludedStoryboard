@@ -14,6 +14,7 @@ class Nib2Controller: UIViewController, IBIncludedSegueableController {
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        //no longer called, sorry!
     }
     
     override func viewDidLoad() {
