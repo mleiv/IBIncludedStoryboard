@@ -65,7 +65,7 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         // share post-segue closures for later execution:
         
         // skip any navigation/tab controllers
-        let destinationController = activeViewController(segue.destinationViewController as? UIViewController)
+        let destinationController = activeViewController(segue.destinationViewController)
         if destinationController == nil { return }
         
         if let includedDestination = destinationController as? IBIncludedWrapperViewController {
@@ -129,8 +129,8 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         
         Since any IBIncluded{Thing} attaches to all IBIncludedWrapperViewControllers in the hierarchy, I am not sure why this is required, but I know the prior version didn't work in some heavily-nested scenarios without this addition.
     
-        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
-        :returns: an (optional) view controller
+        - parameter controller:   (optional) view controller to start looking under, defaults to window's rootViewController
+        - returns: an (optional) view controller
     */
     private func forwardToParentControllers(segue: UIStoryboardSegue, sender: AnyObject?) {
         var currentController = self as UIViewController
@@ -146,8 +146,8 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
     /**
         Locates the top-most view controller that is under the tab/nav controllers
     
-        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
-        :returns: an (optional) view controller
+        - parameter controller:   (optional) view controller to start looking under, defaults to window's rootViewController
+        - returns: an (optional) view controller
     */
     private func activeViewController(controller: UIViewController!) -> UIViewController? {
         if controller == nil {

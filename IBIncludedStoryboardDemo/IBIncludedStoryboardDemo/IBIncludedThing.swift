@@ -75,8 +75,8 @@ public class IBIncludedAbstractThing: UIView {
         Instantiates target view controller using IBDesignable properties.
         - ABSTRACT -
         
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
     public func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
         return nil
@@ -91,7 +91,7 @@ public class IBIncludedAbstractThing: UIView {
         finished = true
         
         let bundle = NSBundle(forClass: self.dynamicType)
-        if let viewController = getViewController(bundle: bundle) {
+        if let viewController = getViewController(bundle) {
             //hook up view controller to hierarchy so viewWillAppear() works right...
             if !attachThing(viewController) {
                 if isInterfaceBuilder {
@@ -115,7 +115,7 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Attaches a viewcontroller to its parent if found and also attached the view.
         
-        :param: viewController      The newly initialized included thing's controller
+        - parameter viewController:      The newly initialized included thing's controller
     */
     private func attachThing(viewController: UIViewController) -> Bool {
         if let parentViewController = findParentViewController(activeViewController(topViewController())) {
@@ -134,7 +134,7 @@ public class IBIncludedAbstractThing: UIView {
     
         Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
         
-        :param: view      The newly initialized included thing's view
+        - parameter view:      The newly initialized included thing's view
     */
     private func attachView(view: UIView!) {
         if view != nil && !viewAttached {
@@ -151,10 +151,10 @@ public class IBIncludedAbstractThing: UIView {
             }
             
             //tell child to fit itself to the edges of wrapper (self)
-            view.setTranslatesAutoresizingMaskIntoConstraints(false)
+            view.translatesAutoresizingMaskIntoConstraints = false
             let bindings = ["view": view]
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
+            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
             
             //clear out top-level view visibility, so only subview shows
             self.opaque = false
@@ -168,8 +168,8 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Inserts the view controller into the current hierarchy so viewWillAppear() gets called, etc.
         
-        :param: viewController      the view controller to insert
-        :param: parent              the view controller to insert it under
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the view controller to insert it under
     */
     private func attachViewControllerToParent(viewController: UIViewController, parent: UIViewController) {
         viewController.willMoveToParentViewController(parent)
@@ -181,8 +181,8 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Attaches the included view controller to any segue forwarding view controllers found in hierarchy
         
-        :param: viewController      the view controller to insert
-        :param: parent              the lowest view controller to try attaching to
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the lowest view controller to try attaching to
     */
     private func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
         var topController = parent as UIViewController?
@@ -198,7 +198,7 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Locates the top-most view controller
     
-        :returns: an (optional) view controller
+        - returns: an (optional) view controller
     */
     private func topViewController() -> UIViewController? {
         if let controller = window?.rootViewController {
@@ -214,8 +214,8 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Locates the top-most view controller that is under the tab/nav controllers
     
-        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
-        :returns: an (optional) view controller
+        - parameter controller:   (optional) view controller to start looking under, defaults to window's rootViewController
+        - returns: an (optional) view controller
     */
     private func activeViewController(controller: UIViewController!) -> UIViewController? {
         if controller == nil {
@@ -234,8 +234,8 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Recursively deep-dives into view controller hierarchy looking for the closest view controller containing self
         
-        :param: topController   Whatever view controller we are currently diving into.
-        :returns: an (optional) view controller containing this IBIncludedNib
+        - parameter topController:   Whatever view controller we are currently diving into.
+        - returns: an (optional) view controller containing this IBIncludedNib
     */
     private func findParentViewController(topController: UIViewController!) -> UIViewController? {
         if topController == nil {
@@ -243,7 +243,7 @@ public class IBIncludedAbstractThing: UIView {
         }
         for viewController in topController.childViewControllers {
             // first try, deep dive into child controllers
-            if let parentViewController = findParentViewController(viewController as? UIViewController) {
+            if let parentViewController = findParentViewController(viewController) {
                 return parentViewController
             }
         }
@@ -258,15 +258,15 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Recursively searches through a view and all its child views for self
         
-        :param: topView   Whatever view we are currently searching into
-        :returns: true if view contains this IBIncludedNib, false otherwise
+        - parameter topView:   Whatever view we are currently searching into
+        - returns: true if view contains this IBIncludedNib, false otherwise
     */
     private func findSelfInViews(topView: UIView) -> Bool {
         if topView == self || topView == self.superview {
             return true
         } else {
             for view in topView.subviews {
-                if findSelfInViews(view as! UIView) {
+                if findSelfInViews(view ) {
                     return true
                 }
             }
@@ -278,9 +278,9 @@ public class IBIncludedAbstractThing: UIView {
         create a static method to get a swift class for a string name
         From http://stackoverflow.com/questions/24030814/swift-language-nsclassfromstring
         
-        :param: className       The name of the class to be instantiated
-        :param: bundle          (optional) bundle to look for class in
-        :returns: an instantiated object of stated class, or nil
+        - parameter className:       The name of the class to be instantiated
+        - parameter bundle:          (optional) bundle to look for class in
+        - returns: an instantiated object of stated class, or nil
     */
     private func classFromString(className: String, bundle: NSBundle? = nil) -> (AnyClass!) {
         let useBundle = bundle ?? NSBundle.mainBundle()
@@ -296,8 +296,8 @@ public class IBIncludedAbstractThing: UIView {
         Logs messages (even in Interface Builder) to a file which can be read to debug IB.
         > open /tmp/XcodeLiveRendering.log
         
-        :param: message     The text to write out
-        :param: forClass    (Optional) A class name to tag messages with
+        - parameter message:     The text to write out
+        - parameter forClass:    (Optional) A class name to tag messages with
     */
     private func ibLog(message: String, forClass xClass: AnyClass? = nil) {
         // command line following to view output from Interface Builder > open /tmp/XcodeLiveRendering.log
@@ -333,14 +333,14 @@ public class IBIncludedStoryboard: IBIncludedAbstractThing {
     
         Note : Keep this function visible externally for use by custom segues.
         
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
     public override func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
         if storyboard == nil { return nil }
-        var storyboardObj = UIStoryboard(name: storyboard, bundle: bundle)
+        let storyboardObj = UIStoryboard(name: storyboard, bundle: bundle)
         //first retrieve the controller
-        if let viewController = (id != nil ? storyboardObj.instantiateViewControllerWithIdentifier(id!) : storyboardObj.instantiateInitialViewController()) as? UIViewController {
+        if let viewController = (id != nil ? storyboardObj.instantiateViewControllerWithIdentifier(id!) : storyboardObj.instantiateInitialViewController()) {
             return viewController
         }
         return nil
@@ -349,8 +349,8 @@ public class IBIncludedStoryboard: IBIncludedAbstractThing {
     /**
         Inserts the view controller into the current hierarchy so viewWillAppear() gets called, etc.
         
-        :param: viewController      the view controller to insert
-        :param: parent              the view controller to insert it under
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the view controller to insert it under
     */
     private override func attachViewControllerToParent(viewController: UIViewController, parent: UIViewController) {
         super.attachViewControllerToParent(viewController, parent: parent)
@@ -437,14 +437,14 @@ public class IBIncludedNib: IBIncludedAbstractThing {
     /**
         Instantiates target nib's view controller using IBDesignable properties.
         
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
     public override func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
         if nib == nil { return nil }
         let bundle = NSBundle(forClass: self.dynamicType)
         if controller != nil, let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
-            return ControllerType(nibName: nib, bundle: bundle) as UIViewController
+            return ControllerType.init(nibName: nib, bundle: bundle) as UIViewController
         }
         return nil
     }
