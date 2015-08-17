@@ -2,8 +2,8 @@
 //  AppDelegate.swift
 //  IBIncludedStoryboardDemo
 //
-//  Created by Emily Ivie on 5/9/15.
-//  Copyright (c) 2015 Emily Ivie. All rights reserved.
+//  Created by Emily Ivie on 8/15/15.
+//  Copyright © 2015 Emily Ivie. All rights reserved.
 //
 
 import UIKit

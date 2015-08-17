@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8173.3" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="jJ1-UR-bm0">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8142"/>
+    </dependencies>
+    <scenes>
+        <!--Main Scene1 Controller-->
+        <scene sceneID="rMn-M5-GuB">
+            <objects>
+                <viewController id="tHr-I1-tud" customClass="MainScene1Controller" customModule="IBIncludedStoryboardDemo" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="Ov3-15-d25"/>
+                        <viewControllerLayoutGuide type="bottom" id="iC6-tR-gN1"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="kvC-5G-KFb">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9Nj-Oh-plN">
+                                <rect key="frame" x="200" y="259" width="200" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="200" id="AWW-p7-Aqz"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fbo-Yt-gwk">
+                                <rect key="frame" x="213" y="160" width="174" height="30"/>
+                                <state key="normal" title="Open Second Storyboard">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <segue destination="ljc-Ry-ciD" kind="show" id="Zrq-3B-oS5"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Type value here to send it along:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KrY-wZ-Lio">
+                                <rect key="frame" x="215" y="240" width="171" height="14"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="14" id="asP-y5-Bos"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                <color key="textColor" red="0.29803922770000002" green="0.29803922770000002" blue="0.29803922770000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="9Nj-Oh-plN" firstAttribute="centerX" secondItem="KrY-wZ-Lio" secondAttribute="centerX" id="1s7-EH-rP7"/>
+                            <constraint firstItem="KrY-wZ-Lio" firstAttribute="centerX" secondItem="Fbo-Yt-gwk" secondAttribute="centerX" id="J8W-V4-rhs"/>
+                            <constraint firstItem="Fbo-Yt-gwk" firstAttribute="top" secondItem="Ov3-15-d25" secondAttribute="bottom" constant="96" id="KPr-Fb-usc"/>
+                            <constraint firstItem="9Nj-Oh-plN" firstAttribute="top" secondItem="KrY-wZ-Lio" secondAttribute="bottom" constant="5" id="Oun-lO-4YQ"/>
+                            <constraint firstItem="KrY-wZ-Lio" firstAttribute="top" secondItem="Fbo-Yt-gwk" secondAttribute="bottom" constant="50" id="ZAz-sz-Nu9"/>
+                            <constraint firstItem="Fbo-Yt-gwk" firstAttribute="centerX" secondItem="kvC-5G-KFb" secondAttribute="centerX" id="Zsp-vO-3pp"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="ItY-OH-Jab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="PHH-nY-Sc5" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1141" y="338"/>
+        </scene>
+        <!--Included Wrapper View Controller-->
+        <scene sceneID="Ckc-ML-wuy">
+            <objects>
+                <viewController id="ljc-Ry-ciD" customClass="IBIncludedWrapperViewController" customModule="IBIncludedStoryboardDemo" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="5G2-pO-gcy"/>
+                        <viewControllerLayoutGuide type="bottom" id="qh8-5c-Cke"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="371-Yz-uGt" customClass="IBIncludedStoryboard" customModule="IBIncludedStoryboardDemo" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="string" keyPath="storyboard" value="Second"/>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8lt-zL-rA6" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1833" y="338"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="bwY-wA-juf">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="jJ1-UR-bm0" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="B3w-pX-xHf">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="tHr-I1-tud" kind="relationship" relationship="rootViewController" id="1yN-wq-PUS"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="HhP-8u-RQZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="398" y="338"/>
+        </scene>
+    </scenes>
+</document>

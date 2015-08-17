@@ -8,6 +8,9 @@
 //  Redistributions of files must retain the above copyright notice.
 //
 
+import UIKit
+
+
 //MARK: IBIncludedSegueableController protocol
 
 public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
@@ -63,7 +66,7 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         // share post-segue closures for later execution:
         
         // skip any navigation/tab controllers
-        let destinationController = activeViewController(segue.destinationViewController as? UIViewController)
+        let destinationController = activeViewController(segue.destinationViewController)
         if destinationController == nil { return }
         
         if let includedDestination = destinationController as? IBIncludedWrapperViewController {
