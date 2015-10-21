@@ -15,7 +15,7 @@ import UIKit
 /**
     Used by IBIncludedWrapperViewController, but since we don't know if that class was included, here's a short protocol to define it for use in IBIncludedThing.
 */
-public protocol IBIncludedSegueableWrapper {
+public protocol IBIncludedSegueableWrapper: class {
     func addIncludedViewController(viewController: UIViewController)
 }
 
@@ -25,7 +25,7 @@ public protocol IBIncludedSegueableWrapper {
 /**
     Abstract class for including nibs/storyboards in other views.
 */
-public protocol IBIncludingView {
+public protocol IBIncludingView: class {
 
     var IBDebugId: String { get }
     var constrainHeight: Bool { get }
@@ -34,8 +34,7 @@ public protocol IBIncludingView {
     var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] { get set }
 
     func getViewController() -> UIViewController?
-    
-    func includeThing() // stated only for visibility to UIView extension
+    func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController)
     
 }
 public enum IBIncludingViewStoredValueType {
@@ -70,7 +69,7 @@ extension IBIncludingView where Self: UIView {
         Setup function for initializing the view controller and attaching it and its view to hierarchy.
         Should probably override in child classes.
     */
-    public func includeThing() {
+    internal func includeThing() {
         if miscellaneousStoredValues.isEmpty {
             initIBIncludingView()
         }
@@ -91,12 +90,6 @@ extension IBIncludingView where Self: UIView {
     }
 
     /**
-        What to do after the included thing view controller is attached.
-        - ABSTRACT -
-    */
-    public func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController) {}
-    
-    /**
         What to do when there is no included thing view controller.
         - ABSTRACT -
     */
@@ -115,7 +108,7 @@ extension IBIncludingView where Self: UIView {
         if let viewController = miscellaneousStoredValues[.StrongViewControllerReference] as? UIViewController,
            let parentViewController = findParentViewController(activeViewController(topViewController())) {
             // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
-            attachSegueForwarders(viewController, parent: parentViewController)
+            self.dynamicType.attachSegueForwarders(viewController, parent: parentViewController)
             attachView(viewController.view)
             attachViewControllerToParent(viewController, parent: parentViewController)
             afterViewControllerAttached(viewController, parent: parentViewController)
@@ -132,8 +125,8 @@ extension IBIncludingView where Self: UIView {
         
         - parameter view:      The newly initialized included thing's view
     */
-    private func attachView(view: UIView!) {
-        guard let viewAttached = miscellaneousStoredValues[.ViewAttached] as? Bool where !viewAttached && view != nil
+    private func attachView(view: UIView?) {
+        guard let view = view, let viewAttached = miscellaneousStoredValues[.ViewAttached] as? Bool where !viewAttached
         else {
             return
         }
@@ -181,7 +174,7 @@ extension IBIncludingView where Self: UIView {
         - parameter viewController:      the view controller to insert
         - parameter parent:              the lowest view controller to try attaching to
     */
-    private func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
+    public static func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
         var topController = parent as UIViewController?
         while topController != nil {
             if let placeholder = topController as? IBIncludedSegueableWrapper {
@@ -250,6 +243,17 @@ public class IBIncludedNib: UIView, IBIncludingView {
     
     public var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] = [:]
     
+    override public func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
+        includeThing()
+    }
+    
+    override public func awakeFromNib() {
+        super.awakeFromNib()
+        includeThing()
+    }
+    
     override public func layoutSubviews() {
         attachThing()
         super.layoutSubviews()
@@ -263,8 +267,8 @@ public class IBIncludedNib: UIView, IBIncludingView {
     */
     public func getViewController() -> UIViewController? {
         if nib == nil { return nil }
-        let bundle = NSBundle(forClass: self.dynamicType)
-        if controller != nil, let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
+        if controller != nil, let ControllerType = classFromString(controller!) as? UIViewController.Type {
+            let bundle = NSBundle(forClass: self.dynamicType)
             return ControllerType.init(nibName: nib, bundle: bundle) as UIViewController
         }
         return nil
@@ -288,15 +292,22 @@ public class IBIncludedNib: UIView, IBIncludingView {
         - parameter bundle:          (optional) bundle to look for class in
         - returns: an instantiated object of stated class, or nil
     */
-    private func classFromString(className: String, bundle: NSBundle? = nil) -> (AnyClass!) {
-        let useBundle = bundle ?? NSBundle.mainBundle()
-        if let appName = useBundle.objectForInfoDictionaryKey("CFBundleName") as? String {
+    private func classFromString(className: String) -> (AnyClass!) {
+        let bundle = NSBundle(forClass: self.dynamicType)
+        if let appName = bundle.objectForInfoDictionaryKey("CFBundleName") as? String {
             let classStringName = "\(appName).\(className)"
             //? "_TtC\(appName!.utf16count)\(appName)\(countElements(className))\(className)"
             return NSClassFromString(classStringName)
         }
         return nil
     }
+    
+    /**
+        Does nothing.
+    */
+    public func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController) {}
+    
+    
 }
 
 //MARK: IBIncludedStoryboard implemented class
@@ -317,6 +328,17 @@ public class IBIncludedStoryboard: UIView, IBIncludingView {
     public var IBDebugId: String { return "\(storyboard) \(sceneId)" }
     
     public var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] = [:]
+    
+    override public func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
+        includeThing()
+    }
+    
+    override public func awakeFromNib() {
+        super.awakeFromNib()
+        includeThing()
+    }
     
     override public func layoutSubviews() {
         attachThing()
@@ -395,19 +417,11 @@ public class IBIncludedStoryboard: UIView, IBIncludingView {
         editButton.customView = otherEditButton.customView
         editButton.tintColor = otherEditButton.tintColor
 
-        parent.modalTransitionStyle = includedController.modalTransitionStyle
-        parent.modalPresentationStyle = includedController.modalPresentationStyle
-        parent.definesPresentationContext = includedController.definesPresentationContext
-        parent.providesPresentationContextTransitionStyle = includedController.providesPresentationContextTransitionStyle
-
         parent.preferredContentSize = includedController.preferredContentSize
-        parent.modalInPopover = includedController.modalInPopover
 
         if includedController.title != nil { // this messes with tab bar names
             parent.title = includedController.title
         }
-        parent.hidesBottomBarWhenPushed = includedController.hidesBottomBarWhenPushed
-        parent.editing = includedController.editing
 
         parent.automaticallyAdjustsScrollViewInsets = includedController.automaticallyAdjustsScrollViewInsets
         parent.edgesForExtendedLayout = includedController.edgesForExtendedLayout
@@ -415,6 +429,36 @@ public class IBIncludedStoryboard: UIView, IBIncludingView {
         parent.modalPresentationCapturesStatusBarAppearance = includedController.modalPresentationCapturesStatusBarAppearance
         parent.transitioningDelegate = includedController.transitioningDelegate
     }
+    
+    /**
+        Allows for easy inclusion in code, when in-storyboard inclusion is not an option.
+    */
+    public static func programmaticInclude(controller: UIViewController, intoController parentController: UIViewController, intoView: UIView? = nil, constrainHeight: Bool = true, constrainWidth: Bool = true) {
+        if let parentView = intoView ?? parentController.view {
+            parentView.addSubview(controller.view)
+            controller.view.translatesAutoresizingMaskIntoConstraints = false
+            
+            if !constrainHeight {
+                let heightConstraint = NSLayoutConstraint(item: controller.view, attribute: NSLayoutAttribute.Height, relatedBy: .Equal, toItem: parentView, attribute: NSLayoutAttribute.Height, multiplier: CGFloat(1.0), constant: CGFloat(0))
+                parentView.addConstraint(heightConstraint)
+            }
+            if !constrainWidth {
+                let widthConstraint = NSLayoutConstraint(item: controller.view, attribute: NSLayoutAttribute.Width, relatedBy: .Equal, toItem: parentView, attribute: NSLayoutAttribute.Width, multiplier: CGFloat(1.0), constant: CGFloat(0))
+                parentView.addConstraint(widthConstraint)
+            }
+            
+            let bindings = ["view": controller.view]
+            parentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+            parentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+            
+            controller.willMoveToParentViewController(parentController)
+            parentController.addChildViewController(controller)
+            controller.didMoveToParentViewController(parentController)
+            
+            IBIncludedStoryboard.attachSegueForwarders(controller, parent: parentController)
+        }
+    }
+    
 }
 
 /**
@@ -432,21 +476,6 @@ extension UIView {
         #else
             return false
         #endif
-    }
-
-    override public func prepareForInterfaceBuilder() {
-        super.prepareForInterfaceBuilder()
-        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
-        if let view = self as? IBIncludingView {
-            view.includeThing()
-        }
-    }
-    
-    override public func awakeFromNib() {
-        super.awakeFromNib()
-        if let view = self as? IBIncludingView {
-            view.includeThing()
-        }
     }
     
     /**
@@ -491,6 +520,7 @@ extension UIView {
         }
         return false
     }
+    
 }
 
 class InterfaceBuilderLog {
