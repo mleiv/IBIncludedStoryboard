@@ -4,9 +4,9 @@
 
 Storyboards can easily get too large and they are slow and difficut to collaborate on without conflicts. IBIncludedStoryboard allows developers to break up their application into sensible chunks and link the storyboards visually.
 
-## News: 2015-08-16
+## News: 2015-10-27
 
-I made a Swift 2.0 branch utilizing some of the new features. Also, if you want to see a bigger example of IBIncludedThing in use (Swift 2.0), check out: [ShepardAppearanceConverter](https://github.com/urdnot-ios/ShepardAppearanceConverter)
+Swift 2.0 merged into main branch. There is no Swift 1.2 branch anymore.
 
 ## News: 2015-06-13
 
