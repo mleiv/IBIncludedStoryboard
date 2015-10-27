@@ -11,74 +11,57 @@
 import UIKit
 
 //MARK: IBIncludedSegueableWrapper protocol
+
 /**
     Used by IBIncludedWrapperViewController, but since we don't know if that class was included, here's a short protocol to define it for use in IBIncludedThing.
 */
-protocol IBIncludedSegueableWrapper {
+public protocol IBIncludedSegueableWrapper: class {
     func addIncludedViewController(viewController: UIViewController)
 }
 
 
-//MARK: IBIncludedAbstractThing abstract parent class
+//MARK: IBIncludingView protocol
 
 /**
-    For including stuff in other nibs/storyboards so they are visible/actionable in Interface Builder and also when app is run.
-    
-    Original nib version inspired by NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
+    Abstract class for including nibs/storyboards in other views.
 */
-@IBDesignable
-public class IBIncludedAbstractThing: UIView {
+public protocol IBIncludingView: class {
 
-    @IBInspectable var constrainHeight: Bool = true
-    @IBInspectable var constrainWidth: Bool = true
+    var IBDebugId: String { get }
+    var constrainHeight: Bool { get }
+    var constrainWidth: Bool { get }
     
-    private var isInterfaceBuilder: Bool = {
-        #if TARGET_INTERFACE_BUILDER
-            return true
-        #else
-            return false
-        #endif
-    }()
+    var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] { get set }
+
+    func getViewController() -> UIViewController?
+    func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController)
     
-    private var finished = false
-    private var viewAttached = false
-    private var attachedToParentViewController = false
-    private var strongViewController: UIViewController?
-
-//    override init(frame: CGRect) {
-//        super.init(frame: frame)
-//    }
-//
-//    required public init(coder aDecoder: NSCoder) {
-//        super.init(coder: aDecoder)
-//    }
-
-    override public func prepareForInterfaceBuilder() {
-        super.prepareForInterfaceBuilder()
-        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
+}
+public enum IBIncludingViewStoredValueType {
+    case Initialized, ViewControllerAttached, ViewAttached, StrongViewControllerReference
+}
+extension IBIncludingView where Self: UIView {
+    
+    /**
+        Rather than making all our protocol-adhering views declare each of these properties separately, I am putting them all in this array and initializing it the first time includeThing() is called.
+    */
+    private func initIBIncludingView() {
+        miscellaneousStoredValues = [:]
+        miscellaneousStoredValues[.Initialized] = false
+        miscellaneousStoredValues[.ViewControllerAttached] = false
+        miscellaneousStoredValues[.ViewAttached] = false
+        miscellaneousStoredValues[.StrongViewControllerReference] = NSNull()
         includeThing()
     }
-    
-    override public func awakeFromNib() {
-        super.awakeFromNib()
-        includeThing()
-    }
-    
-    override public func layoutSubviews() {
-        if !attachedToParentViewController, let viewController = strongViewController where attachThing(viewController) {
-            strongViewController = nil
-        }
-        super.layoutSubviews()
-    }
-    
+
     /**
         Instantiates target view controller using IBDesignable properties.
         - ABSTRACT -
         
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
-    public func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
+    public func getViewController() -> UIViewController? {
         return nil
     }
     
@@ -86,105 +69,112 @@ public class IBIncludedAbstractThing: UIView {
         Setup function for initializing the view controller and attaching it and its view to hierarchy.
         Should probably override in child classes.
     */
-    private func includeThing() {
-        if finished { return }
-        finished = true
-        
-        let bundle = NSBundle(forClass: self.dynamicType)
-        if let viewController = getViewController(bundle: bundle) {
+    internal func includeThing() {
+        if miscellaneousStoredValues.isEmpty {
+            initIBIncludingView()
+        }
+        guard let initialized = miscellaneousStoredValues[.Initialized] as? Bool where !initialized
+        else {
+            return
+        }
+        if let viewController = getViewController() {
             //hook up view controller to hierarchy so viewWillAppear() works right...
-            if !attachThing(viewController) {
-                if isInterfaceBuilder {
-                    attachView(viewController.view)
-                    //if we don't do this now, nested IBIncluded{Thing} may never be loaded :/
-                }
-                strongViewController = viewController
+            miscellaneousStoredValues[.StrongViewControllerReference] = viewController
+            if !attachThing() && isInterfaceBuilder {
+                //if we don't do this now, nested IBIncluded{Thing} may never be loaded :/
+                attachView(viewController.view)
             }
         } else {
-            noViewControllerFound()
+            viewControllerNotFound()
         }
     }
-    
+
     /**
         What to do when there is no included thing view controller.
         - ABSTRACT -
     */
-    private func noViewControllerFound() {}
-    
+    public func viewControllerNotFound() {}
     
     /**
         Attaches a viewcontroller to its parent if found and also attached the view.
         
-        :param: viewController      The newly initialized included thing's controller
+        - parameter viewController:      The newly initialized included thing's controller
     */
-    private func attachThing(viewController: UIViewController) -> Bool {
-        if let parentViewController = findParentViewController(activeViewController(topViewController())) {
+    public func attachThing() -> Bool {
+        guard let viewControllerAttached = miscellaneousStoredValues[.ViewControllerAttached] as? Bool where !viewControllerAttached
+        else {
+            return false
+        }
+        if let viewController = miscellaneousStoredValues[.StrongViewControllerReference] as? UIViewController,
+           let parentViewController = findParentViewController(activeViewController(topViewController())) {
             // we *really* want view controller hierarchy, this is a last ditch attempt if awakeFromNib was too early
-            attachSegueForwarders(viewController, parent: parentViewController)
+            self.dynamicType.attachSegueForwarders(viewController, parent: parentViewController)
             attachView(viewController.view)
             attachViewControllerToParent(viewController, parent: parentViewController)
+            afterViewControllerAttached(viewController, parent: parentViewController)
             return true
         }
         return false
     }
-    
+
     /**
         Adds view to hierarchy.
         Shares layout constraints between view and wrapper view.
     
         Derived from NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
         
-        :param: view      The newly initialized included thing's view
+        - parameter view:      The newly initialized included thing's view
     */
-    private func attachView(view: UIView!) {
-        if view != nil && !viewAttached {
-            self.addSubview(view)
-            
-            //change wrapper (self) height and width if we are doing that
-            if !constrainHeight {
-                let heightConstraint = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Height, relatedBy: .Equal, toItem: self as UIView, attribute: NSLayoutAttribute.Height, multiplier: CGFloat(1.0), constant: CGFloat(0))
-                self.addConstraint(heightConstraint)
-            }
-            if !constrainWidth {
-                let widthConstraint = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Width, relatedBy: .Equal, toItem: self as UIView, attribute: NSLayoutAttribute.Width, multiplier: CGFloat(1.0), constant: CGFloat(0))
-                self.addConstraint(widthConstraint)
-            }
-            
-            //tell child to fit itself to the edges of wrapper (self)
-            view.setTranslatesAutoresizingMaskIntoConstraints(false)
-            let bindings = ["view": view]
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
-            self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(0), metrics:nil, views: bindings))
-            
-            //clear out top-level view visibility, so only subview shows
-            self.opaque = false
-            self.backgroundColor = UIColor.clearColor()
-            
-            viewAttached = true
+    private func attachView(view: UIView?) {
+        guard let view = view, let viewAttached = miscellaneousStoredValues[.ViewAttached] as? Bool where !viewAttached
+        else {
+            return
         }
-
+        self.addSubview(view)
+        
+        //change wrapper (self) height and width if we are doing that
+        if !constrainHeight {
+            let heightConstraint = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Height, relatedBy: .Equal, toItem: self as UIView, attribute: NSLayoutAttribute.Height, multiplier: CGFloat(1.0), constant: CGFloat(0))
+            self.addConstraint(heightConstraint)
+        }
+        if !constrainWidth {
+            let widthConstraint = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Width, relatedBy: .Equal, toItem: self as UIView, attribute: NSLayoutAttribute.Width, multiplier: CGFloat(1.0), constant: CGFloat(0))
+            self.addConstraint(widthConstraint)
+        }
+        
+        //tell child to fit itself to the edges of wrapper (self)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        let bindings = ["view": view]
+        self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+        self.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+        
+        //clear out top-level view visibility, so only subview shows
+        self.opaque = false
+        self.backgroundColor = UIColor.clearColor()
+        
+        miscellaneousStoredValues[.ViewAttached] = true
     }
     
     /**
         Inserts the view controller into the current hierarchy so viewWillAppear() gets called, etc.
         
-        :param: viewController      the view controller to insert
-        :param: parent              the view controller to insert it under
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the view controller to insert it under
     */
     private func attachViewControllerToParent(viewController: UIViewController, parent: UIViewController) {
         viewController.willMoveToParentViewController(parent)
         parent.addChildViewController(viewController)
         viewController.didMoveToParentViewController(parent)
-        attachedToParentViewController = true
+        miscellaneousStoredValues[.ViewControllerAttached] = true
     }
     
     /**
         Attaches the included view controller to any segue forwarding view controllers found in hierarchy
         
-        :param: viewController      the view controller to insert
-        :param: parent              the lowest view controller to try attaching to
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the lowest view controller to try attaching to
     */
-    private func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
+    public static func attachSegueForwarders(viewController: UIViewController, parent: UIViewController) {
         var topController = parent as UIViewController?
         while topController != nil {
             if let placeholder = topController as? IBIncludedSegueableWrapper {
@@ -198,15 +188,15 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Locates the top-most view controller
     
-        :returns: an (optional) view controller
+        - returns: an (optional) view controller
     */
     private func topViewController() -> UIViewController? {
         if let controller = window?.rootViewController {
             return controller
         } else if let controller = UIApplication.sharedApplication().keyWindow?.rootViewController {
             return controller
-        } else if let delegate = UIApplication.sharedApplication().delegate, let controller = delegate.window??.rootViewController {
-            return controller
+//        } else if let delegate = UIApplication.sharedApplication().delegate, let controller = delegate.window??.rootViewController {
+//            return controller
         }
         return nil
     }
@@ -214,15 +204,15 @@ public class IBIncludedAbstractThing: UIView {
     /**
         Locates the top-most view controller that is under the tab/nav controllers
     
-        :param: controller   (optional) view controller to start looking under, defaults to window's rootViewController
-        :returns: an (optional) view controller
+        - parameter controller:   (optional) view controller to start looking under, defaults to window's rootViewController
+        - returns: an (optional) view controller
     */
     private func activeViewController(controller: UIViewController!) -> UIViewController? {
         if controller == nil {
             return nil
         }
         if let tabController = controller as? UITabBarController, let nextController = tabController.selectedViewController {
-            return activeViewController(nextController)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     return activeViewController(nextController)
         } else if let navController = controller as? UINavigationController, let nextController = navController.visibleViewController {
             return activeViewController(nextController)
         } else if let nextController = controller.presentedViewController {
@@ -231,60 +221,80 @@ public class IBIncludedAbstractThing: UIView {
         return controller
     }
     
+}
+
+//MARK: IBIncludedAbstractThing abstract parent class
+
+/**
+    For including stuff in other nibs/storyboards so they are visible/actionable in Interface Builder and also when app is run.
+    
+    Original nib version inspired by NibDesignable.swift by Morten Bøgh https://github.com/mbogh/NibDesignable
+*/
+@IBDesignable
+public class IBIncludedNib: UIView, IBIncludingView {
+
+    @IBInspectable var nib: String?
+    @IBInspectable var controller: String?
+    
+    @IBInspectable public var constrainHeight: Bool = true
+    @IBInspectable public var constrainWidth: Bool = true
+    
+    public var IBDebugId: String { return "\(nib) \(controller)" }
+    
+    public var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] = [:]
+    
+    override public func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
+        includeThing()
+    }
+    
+    override public func awakeFromNib() {
+        super.awakeFromNib()
+        includeThing()
+    }
+    
+    override public func layoutSubviews() {
+        attachThing()
+        super.layoutSubviews()
+    }
+    
     /**
-        Recursively deep-dives into view controller hierarchy looking for the closest view controller containing self
+        Instantiates target nib's view controller using IBDesignable properties.
         
-        :param: topController   Whatever view controller we are currently diving into.
-        :returns: an (optional) view controller containing this IBIncludedNib
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
-    private func findParentViewController(topController: UIViewController!) -> UIViewController? {
-        if topController == nil {
-            return nil
-        }
-        for viewController in topController.childViewControllers {
-            // first try, deep dive into child controllers
-            if let parentViewController = findParentViewController(viewController as? UIViewController) {
-                return parentViewController
-            }
-        }
-        // second try, top view controller (most generic)
-        if let topView = topController?.view where findSelfInViews(topView) {
-            return topController
+    public func getViewController() -> UIViewController? {
+        if nib == nil { return nil }
+        if controller != nil, let ControllerType = classFromString(controller!) as? UIViewController.Type {
+            let bundle = NSBundle(forClass: self.dynamicType)
+            return ControllerType.init(nibName: nib, bundle: bundle) as UIViewController
         }
         return nil
     }
     
-    
     /**
-        Recursively searches through a view and all its child views for self
-        
-        :param: topView   Whatever view we are currently searching into
-        :returns: true if view contains this IBIncludedNib, false otherwise
+        What to do when there is no included thing view controller.
     */
-    private func findSelfInViews(topView: UIView) -> Bool {
-        if topView == self || topView == self.superview {
-            return true
-        } else {
-            for view in topView.subviews {
-                if findSelfInViews(view as! UIView) {
-                    return true
-                }
-            }
+    public func viewControllerNotFound() {
+        let bundle = NSBundle(forClass: self.dynamicType)
+        if nib != nil, let view = bundle.loadNibNamed(nib, owner: self, options: nil)?.first as? UIView {
+            attachView(view)
         }
-        return false
     }
     
     /**
         create a static method to get a swift class for a string name
         From http://stackoverflow.com/questions/24030814/swift-language-nsclassfromstring
         
-        :param: className       The name of the class to be instantiated
-        :param: bundle          (optional) bundle to look for class in
-        :returns: an instantiated object of stated class, or nil
+        - parameter className:       The name of the class to be instantiated
+        - parameter bundle:          (optional) bundle to look for class in
+        - returns: an instantiated object of stated class, or nil
     */
-    private func classFromString(className: String, bundle: NSBundle? = nil) -> (AnyClass!) {
-        let useBundle = bundle ?? NSBundle.mainBundle()
-        if let appName = useBundle.objectForInfoDictionaryKey("CFBundleName") as? String {
+    private func classFromString(className: String) -> (AnyClass!) {
+        let bundle = NSBundle(forClass: self.dynamicType)
+        if let appName = bundle.objectForInfoDictionaryKey("CFBundleName") as? String {
             let classStringName = "\(appName).\(className)"
             //? "_TtC\(appName!.utf16count)\(appName)\(countElements(className))\(className)"
             return NSClassFromString(classStringName)
@@ -293,28 +303,11 @@ public class IBIncludedAbstractThing: UIView {
     }
     
     /**
-        Logs messages (even in Interface Builder) to a file which can be read to debug IB.
-        > open /tmp/XcodeLiveRendering.log
-        
-        :param: message     The text to write out
-        :param: forClass    (Optional) A class name to tag messages with
+        Does nothing.
     */
-    private func ibLog(message: String, forClass xClass: AnyClass? = nil) {
-        // command line following to view output from Interface Builder > open /tmp/XcodeLiveRendering.log
-        #if TARGET_INTERFACE_BUILDER
-            let logPath = "/tmp/XcodeLiveRendering.log"
-            if !NSFileManager.defaultManager().fileExistsAtPath(logPath) {
-                NSFileManager.defaultManager().createFileAtPath(logPath, contents: NSData(), attributes: nil)
-            }
-            var fileHandle = NSFileHandle(forWritingAtPath: logPath)
-            fileHandle?.seekToEndOfFile()
-            let date = NSDate()
-            let bundle = xClass != nil ? NSBundle(forClass: xClass!) : NSBundle.mainBundle()
-            let application: AnyObject? = bundle.objectForInfoDictionaryKey("CFBundleName")
-            let data = "\(date) \(application) \(message)\n".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
-            fileHandle?.writeData(data!)
-        #endif
-    }
+    public func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController) {}
+    
+    
 }
 
 //MARK: IBIncludedStoryboard implemented class
@@ -322,25 +315,50 @@ public class IBIncludedAbstractThing: UIView {
 /**
     For including storyboard pages in other nibs/storyboards, visible in Interface Builder.
 */
-public class IBIncludedStoryboard: IBIncludedAbstractThing {
+@IBDesignable
+public class IBIncludedStoryboard: UIView, IBIncludingView {
 
     @IBInspectable var storyboard: String!
-    @IBInspectable var id: String?
+    @IBInspectable var sceneId: String?
     @IBInspectable var treatAsNib: Bool = false
+    
+    @IBInspectable public var constrainHeight: Bool = true
+    @IBInspectable public var constrainWidth: Bool = true
+    
+    public var IBDebugId: String { return "\(storyboard) \(sceneId)" }
+    
+    public var miscellaneousStoredValues: [IBIncludingViewStoredValueType: AnyObject] = [:]
+    
+    override public func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        // BTW - nested IBIncluded{Thing} do not use prepareForInterfaceBuilder()
+        includeThing()
+    }
+    
+    override public func awakeFromNib() {
+        super.awakeFromNib()
+        includeThing()
+    }
+    
+    override public func layoutSubviews() {
+        attachThing()
+        super.layoutSubviews()
+    }
     
     /**
         Instantiates target storyboard's view controller using IBDesignable properties.
     
         Note : Keep this function visible externally for use by custom segues.
         
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        - parameter bundle:      The current code bundle (which allows this to be more accurate when used in custom segues)
+        - returns: an optional storyboard view controller
     */
-    public override func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
+    public func getViewController() -> UIViewController? {
         if storyboard == nil { return nil }
-        var storyboardObj = UIStoryboard(name: storyboard, bundle: bundle)
+        let bundle = NSBundle(forClass: self.dynamicType)
+        let storyboardObj = UIStoryboard(name: storyboard, bundle: bundle)
         //first retrieve the controller
-        if let viewController = (id != nil ? storyboardObj.instantiateViewControllerWithIdentifier(id!) : storyboardObj.instantiateInitialViewController()) as? UIViewController {
+        if let viewController = (sceneId != nil ? storyboardObj.instantiateViewControllerWithIdentifier(sceneId!) : storyboardObj.instantiateInitialViewController()) {
             return viewController
         }
         return nil
@@ -349,11 +367,10 @@ public class IBIncludedStoryboard: IBIncludedAbstractThing {
     /**
         Inserts the view controller into the current hierarchy so viewWillAppear() gets called, etc.
         
-        :param: viewController      the view controller to insert
-        :param: parent              the view controller to insert it under
+        - parameter viewController:      the view controller to insert
+        - parameter parent:              the view controller to insert it under
     */
-    private override func attachViewControllerToParent(viewController: UIViewController, parent: UIViewController) {
-        super.attachViewControllerToParent(viewController, parent: parent)
+    public func afterViewControllerAttached(viewController: UIViewController, parent: UIViewController) {
         transferControllerProperties(viewController, parent: parent)
     }
     
@@ -400,19 +417,11 @@ public class IBIncludedStoryboard: IBIncludedAbstractThing {
         editButton.customView = otherEditButton.customView
         editButton.tintColor = otherEditButton.tintColor
 
-        parent.modalTransitionStyle = includedController.modalTransitionStyle
-        parent.modalPresentationStyle = includedController.modalPresentationStyle
-        parent.definesPresentationContext = includedController.definesPresentationContext
-        parent.providesPresentationContextTransitionStyle = includedController.providesPresentationContextTransitionStyle
-
         parent.preferredContentSize = includedController.preferredContentSize
-        parent.modalInPopover = includedController.modalInPopover
 
         if includedController.title != nil { // this messes with tab bar names
             parent.title = includedController.title
         }
-        parent.hidesBottomBarWhenPushed = includedController.hidesBottomBarWhenPushed
-        parent.editing = includedController.editing
 
         parent.automaticallyAdjustsScrollViewInsets = includedController.automaticallyAdjustsScrollViewInsets
         parent.edgesForExtendedLayout = includedController.edgesForExtendedLayout
@@ -420,43 +429,125 @@ public class IBIncludedStoryboard: IBIncludedAbstractThing {
         parent.modalPresentationCapturesStatusBarAppearance = includedController.modalPresentationCapturesStatusBarAppearance
         parent.transitioningDelegate = includedController.transitioningDelegate
     }
-}
-
-
-//MARK: IBIncludedNib implemented class
-
-/**
-    For including nibs in other nibs/storyboards, visible in Interface Builder.
-*/
-public class IBIncludedNib: IBIncludedAbstractThing {
-
-    @IBInspectable var nib:String!
-    @IBInspectable var controller:String?
-    @IBInspectable var treatAsNib: Bool = false
     
     /**
-        Instantiates target nib's view controller using IBDesignable properties.
-        
-        :param: bundle      The current code bundle (which allows this to be more accurate when used in custom segues)
-        :returns: an optional storyboard view controller
+        Allows for easy inclusion in code, when in-storyboard inclusion is not an option.
     */
-    public override func getViewController(bundle: NSBundle = NSBundle.mainBundle()) -> UIViewController? {
-        if nib == nil { return nil }
-        let bundle = NSBundle(forClass: self.dynamicType)
-        if controller != nil, let ControllerType = classFromString(controller!, bundle: bundle) as? UIViewController.Type {
-            return ControllerType(nibName: nib, bundle: bundle) as UIViewController
+    public static func programmaticInclude(controller: UIViewController, intoController parentController: UIViewController, intoView: UIView? = nil, constrainHeight: Bool = true, constrainWidth: Bool = true) {
+        if let parentView = intoView ?? parentController.view {
+            parentView.addSubview(controller.view)
+            controller.view.translatesAutoresizingMaskIntoConstraints = false
+            
+            if !constrainHeight {
+                let heightConstraint = NSLayoutConstraint(item: controller.view, attribute: NSLayoutAttribute.Height, relatedBy: .Equal, toItem: parentView, attribute: NSLayoutAttribute.Height, multiplier: CGFloat(1.0), constant: CGFloat(0))
+                parentView.addConstraint(heightConstraint)
+            }
+            if !constrainWidth {
+                let widthConstraint = NSLayoutConstraint(item: controller.view, attribute: NSLayoutAttribute.Width, relatedBy: .Equal, toItem: parentView, attribute: NSLayoutAttribute.Width, multiplier: CGFloat(1.0), constant: CGFloat(0))
+                parentView.addConstraint(widthConstraint)
+            }
+            
+            let bindings = ["view": controller.view]
+            parentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+            parentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[view]|", options:NSLayoutFormatOptions(rawValue: 0), metrics:nil, views: bindings))
+            
+            controller.willMoveToParentViewController(parentController)
+            parentController.addChildViewController(controller)
+            controller.didMoveToParentViewController(parentController)
+            
+            IBIncludedStoryboard.attachSegueForwarders(controller, parent: parentController)
+        }
+    }
+    
+}
+
+/**
+    Core changes to UIView. We have to override prepareForInterfaceBuilder() and awakeFromNib() to startup the inclusion of storyboards/nibs. But neither can go in the protocol, and unfortunately layoutSubviews() is not available for override in extension UIView, so I had to put that in every IBIncludingView-protocol-implementing UIView class. :/
+    
+    I put some of the view-introspective functions in here also because they were view-specific rather than IBIncludingView-specific and might prove useful elsewhere.
+    
+    Also, IBLog is in here so that it can be easily called in the most places possible.
+*/
+extension UIView {
+    
+    internal var isInterfaceBuilder: Bool {
+        #if TARGET_INTERFACE_BUILDER
+            return true
+        #else
+            return false
+        #endif
+    }
+    
+    /**
+        Recursively deep-dives into view controller hierarchy looking for the closest view controller containing self
+        
+        - parameter topController:   Whatever view controller we are currently diving into.
+        - returns: an (optional) view controller containing this IBIncludedNib
+    */
+    private func findParentViewController(topController: UIViewController!) -> UIViewController? {
+        if topController == nil {
+            return nil
+        }
+        for viewController in topController.childViewControllers {
+            // first try, deep dive into child controllers
+            if let parentViewController = findParentViewController(viewController) {
+                return parentViewController
+            }
+        }
+        // second try, top view controller (most generic)
+        if let topView = topController?.view where findSelfInViews(topView) {
+            return topController
         }
         return nil
     }
     
+    
     /**
-        What to do when there is no included thing view controller.
+        Recursively searches through a view and all its child views for self
+        
+        - parameter topView:   Whatever view we are currently searching into
+        - returns: true if view contains this IBIncludedNib, false otherwise
     */
-    private override func noViewControllerFound() {
-        let bundle = NSBundle(forClass: self.dynamicType)
-        if nib != nil, let view = bundle.loadNibNamed(nib, owner: self, options: nil)?.first as? UIView {
-            attachView(view)
+    private func findSelfInViews(topView: UIView) -> Bool {
+        if topView == self || topView == self.superview {
+            return true
+        } else {
+            for view in topView.subviews {
+                if findSelfInViews(view ) {
+                    return true
+                }
+            }
         }
+        return false
+    }
+    
+}
+
+class InterfaceBuilderLog {
+    /**
+        Logs messages (even in Interface Builder) to a file which can be read to debug IB.
+        
+        Example:::
+            InterfaceBuilderLog.log("Message from \(IBDebugId)")
+            Command Line:> open /tmp/XcodeLiveRendering.log
+        
+        :param: message     The text to write out
+        :param: forClass    (Optional) A class name to tag messages with
+    */
+    class func log(message: String, forClass xClass: AnyClass? = nil) {
+        // command line following to view output from Interface Builder > open /tmp/XcodeLiveRendering.log
+        #if TARGET_INTERFACE_BUILDER
+            let logPath = "/tmp/XcodeLiveRendering.log"
+            if !NSFileManager.defaultManager().fileExistsAtPath(logPath) {
+                NSFileManager.defaultManager().createFileAtPath(logPath, contents: NSData(), attributes: nil)
+            }
+            let fileHandle = NSFileHandle(forWritingAtPath: logPath)
+            fileHandle?.seekToEndOfFile()
+            let date = NSDate()
+            let bundle = xClass != nil ? NSBundle(forClass: xClass!) : NSBundle.mainBundle()
+            let application: AnyObject? = bundle.objectForInfoDictionaryKey("CFBundleName")
+            let data = "\(date) \(application) \(message)\n".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
+            fileHandle?.writeData(data!)
+        #endif
     }
 }
-    

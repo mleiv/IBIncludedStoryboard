@@ -18,11 +18,11 @@ To use, simply add the IBIncludedThing.swift file to your project.
 
 Then, create a second storyboard file. If you set the Storyboard ID properties for your second storyboard scenes, you will have the option in the main storyboard to jump to any scene you want, otherwise it will default to the root/initial scene. 
 
-![New Storyboard](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/1-SecondStoryboard.imageset/1-SecondStoryboard.png?raw=true)
+![New Storyboard](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Assets.xcassets/1-SecondStoryboard.imageset/1-SecondStoryboard.png?raw=true)
 
 In your main storyboard, create a placeholder view controller where you want to include this new storyboard.
 
-![Linking To New Storyboard](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/2-MainStoryboardToSecond.imageset/2-MainStoryboardToSecond.png?raw=true)
+![Linking To New Storyboard](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Assets.xcassets/2-MainStoryboardToSecond.imageset/2-MainStoryboardToSecond.png?raw=true)
 
 1. Select the placeholder's root view.
 2. Change the root view's class name to IBIncludedStoryboard.
@@ -37,7 +37,7 @@ See [IBIncludedNib](https://github.com/mleiv/IBIncludedNib), for a nib-specific 
 
 **Quick Rundown**
 
-![Including Nib](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/3-IncludingNib.imageset/3-IncludingNib.png?raw=true)
+![Including Nib](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Assets.xcassets/3-IncludingNib.imageset/3-IncludingNib.png?raw=true)
 
 1. Create the nib file and, optionally, its controller.
 2. In the storyboard, create a placeholder view controller and set one of its views to be IBIncludedNib (note: it does not have to be the root view: I sometimes like to use the placeholder to wrap the nib in a UIScrollView rather than mess with that at nib-level design).
@@ -56,11 +56,11 @@ Because IBIncludedStoryboard and IBIncludedNib are *child* view controllers of t
 
 1. Create the segue from the storyboard scene's parent controller to the new scene and give it a unique identifier.
 
-    ![Seguing In Code Step 1](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/5-NibSegueDetail.imageset/5-NibSegueDetail.png?raw=true)
+    ![Seguing In Code Step 1](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Assets.xcassets/5-NibSegueDetail.imageset/5-NibSegueDetail.png?raw=true)
     
 2. Wire up an element in the child controller to code that directly invokes the segue.
 
-    ![Seguing In Code Step 2](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Images.xcassets/6-NibSegueCode.imageset/6-NibSegueCode.png?raw=true)
+    ![Seguing In Code Step 2](/IBIncludedStoryboardDemo/IBIncludedStoryboardDemo/Assets.xcassets/6-NibSegueCode.imageset/6-NibSegueCode.png?raw=true)
 
 Example:
 

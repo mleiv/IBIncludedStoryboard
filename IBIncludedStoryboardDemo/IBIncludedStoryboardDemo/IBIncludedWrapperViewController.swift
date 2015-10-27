@@ -10,6 +10,7 @@
 
 import UIKit
 
+
 //MARK: IBIncludedSegueableController protocol
 
 public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
@@ -28,7 +29,7 @@ public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
     /**
         Check the destination view controller type and share data if it is what you want.
     */
-    optional var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType { get }
+    optional var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType { get set }
 }
 
 
@@ -54,20 +55,28 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         Can handle scenarios where one half of the segue in an IBIncluded{Thing} but the other half isn't.
     */
     override public func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
         //super.prepareForSegue(segue, sender: sender) //doesn't help propogate up the segue
         
         forwardToParentControllers(segue, sender: sender)
-        
+    
         // forward for pre-segue preparations:
         for includedController in includedViewControllers {
             includedController.prepareBeforeIBIncludedSegue?(segue, sender: sender)
         }
+        
         // share post-segue closures for later execution:
         
         // skip any navigation/tab controllers
-        let destinationController = activeViewController(segue.destinationViewController as? UIViewController)
-        if destinationController == nil { return }
+        if let destinationController = activeViewController(segue.destinationViewController) {
+            tryToApplyClosures(destinationController)
+        }
         
+//        prepareAfterSegueClosures = []
+        
+    }
+    
+    public func tryToApplyClosures(destinationController: UIViewController?) {
         if let includedDestination = destinationController as? IBIncludedWrapperViewController {
             // check self for any seguable closures (if we aren't IBIncluded{Thing} but are segueing to one):
             if let selfSegue = self as? IBIncludedSegueableController {
@@ -124,6 +133,14 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         }
     }
     
+    public func addClosure(newClosure: prepareAfterSegueType) {
+        prepareAfterSegueClosures.append(newClosure)
+    }
+    
+    public func resetClosures() {
+        prepareAfterSegueClosures = []
+    }
+    
     /**
         Propogates the segue up to parent IBIncludedWrapperViewControllers so they can also run the prepareAfterIBIncludedSegue() on their included things. 
         
@@ -161,5 +178,53 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
             return activeViewController(nextController)
         }
         return controller
+    }
+}
+
+extension UIApplication {
+    public class func findIBIncludedWrapperViewController(controller: UIViewController? = nil) -> IBIncludedWrapperViewController? {
+        var topController = controller
+        if topController == nil,
+            let delegate = UIApplication.sharedApplication().delegate,
+            let window = delegate.window {
+            topController = window?.rootViewController
+        }
+        if topController == nil {
+            return nil
+        }
+        if let selfController = topController as? IBIncludedWrapperViewController {
+            return selfController
+        }
+        if let tabController = topController as? UITabBarController, let nextController = tabController.selectedViewController {
+            return findIBIncludedWrapperViewController(nextController)
+        } else if let navController = topController as? UINavigationController, let nextController = navController.visibleViewController {
+            return findIBIncludedWrapperViewController(nextController)
+        } else if let nextController = topController?.presentedViewController {
+            return findIBIncludedWrapperViewController(nextController)
+        }
+        for controller in (topController?.childViewControllers ?? []) {
+            if let childController = findIBIncludedWrapperViewController(controller) {
+                return childController
+            }
+        }
+        return nil
+    }
+    
+    public class func findTopIBIncludedWrapperViewController() -> IBIncludedWrapperViewController? {
+        if let delegate = UIApplication.sharedApplication().delegate, let window = delegate.window, let topController = window?.rootViewController {
+            var viewControllers: [UIViewController] = [topController]
+            while viewControllers.count > 0 {
+                if let currentController = viewControllers.popLast() {
+                    for childController in currentController.childViewControllers {
+                        if let controller = childController as? IBIncludedWrapperViewController {
+                            return controller
+                        } else {
+                            viewControllers.append(childController)
+                        }
+                    }
+                }
+            }
+        }
+        return nil
     }
 }
