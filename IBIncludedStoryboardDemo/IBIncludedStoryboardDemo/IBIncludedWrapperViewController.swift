@@ -13,22 +13,23 @@ import UIKit
 
 //MARK: IBIncludedSegueableController protocol
 
-public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Void
+public typealias PrepareAfterIBIncludedSegueType = (UIViewController) -> Bool
 
 /**
     Protocol to identify nested IBIncluded{Thing} view controllers that need to share data during prepareForSegue.
     Note: This is not a default protocol applied to all IBIncluded{Thing} - you have to apply it individually to nibs/storyboards that are sharing data.
 */
 @objc public protocol IBIncludedSegueableController {
-    /**
-        Run code before segueing away or prepare for segue to a non-IBIncluded{Thing} page.
-        Do not use to share data (see prepareAfterIBIncludedSegue for that).
-    */
-    optional func prepareBeforeIBIncludedSegue(segue: UIStoryboardSegue, sender: AnyObject?)
     
-    /**
-        Check the destination view controller type and share data if it is what you want.
-    */
+    /// Run code before segueing away or prepare for segue to a non-IBIncluded{Thing} page.
+    /// Do not use to share data (see prepareAfterIBIncludedSegue for that).
+    /// - parameter segue: The segue object containing information about the view controllers involved in the segue. See [prepareForSegue documentation](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIViewController_Class/#//apple_ref/occ/instm/UIViewController/prepareForSegue:sender:)
+    /// - parameter sender: The object that initiated the segue. You might use this parameter to perform different actions based on which control (or other object) initiated the segue. See [prepareForSegue documentation](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIViewController_Class/#//apple_ref/occ/instm/UIViewController/prepareForSegue:sender:)
+    /// - returns: `true` if function has finished its work and can be deleted, `false` if it did not find the controller it is looking for yet.
+
+    optional func prepareBeforeIBIncludedSegue(segue: UIStoryboardSegue, sender: AnyObject?) -> Bool
+    
+    /// Check the destination view controller type and share data if it is what you want.
     optional var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType { get set }
 }
 
@@ -45,7 +46,6 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
 
     internal var includedViewControllers = [IBIncludedSegueableController]()
     
-    public typealias prepareAfterSegueType = (UIViewController) -> Void
     internal var prepareAfterSegueClosures:[PrepareAfterIBIncludedSegueType] = []
 
     /**
@@ -65,24 +65,21 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
             includedController.prepareBeforeIBIncludedSegue?(segue, sender: sender)
         }
         
-        // share post-segue closures for later execution:
-        
+        // save/share post-segue closures for later execution:
         // skip any navigation/tab controllers
         if let destinationController = activeViewController(segue.destinationViewController) {
             tryToApplyClosures(destinationController)
         }
         
-//        prepareAfterSegueClosures = []
-        
+        prepareAfterSegueClosures = [] // we are done, clean up any lingering controllers in case we have ARC issues
+        // NOTE: you may not want this if you are doing very delayed prepareAfterSegue stuff (like, delayed until after a segue to another page and coming back), but I have seen no ill effects myself.
     }
     
     public func tryToApplyClosures(destinationController: UIViewController?) {
         if let includedDestination = destinationController as? IBIncludedWrapperViewController {
             // check self for any seguable closures (if we aren't IBIncluded{Thing} but are segueing to one):
-            if let selfSegue = self as? IBIncludedSegueableController {
-                if let closure = selfSegue.prepareAfterIBIncludedSegue {
-                    includedDestination.prepareAfterSegueClosures.append(closure)
-                }
+            if let selfSegue = self as? IBIncludedSegueableController, let closure = selfSegue.prepareAfterIBIncludedSegue {
+                includedDestination.prepareAfterSegueClosures.append(closure)
             }
             // check all seguable closures now:
             for includedController in includedViewControllers {
@@ -127,13 +124,14 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
         if let includedController = viewController as? IBIncludedSegueableController {
             includedViewControllers.append(includedController)
         }
-        // but we don't care what we run our saved prepareAfterIBIncludedSegue closures on:
-        for closure in prepareAfterSegueClosures {
-            closure(viewController)
+        // try running saved segue closures, delete any that are marked finished
+        prepareAfterSegueClosures = prepareAfterSegueClosures.filter { closure in
+            let finished = closure(viewController)
+            return !finished
         }
     }
     
-    public func addClosure(newClosure: prepareAfterSegueType) {
+    public func addClosure(newClosure: PrepareAfterIBIncludedSegueType) {
         prepareAfterSegueClosures.append(newClosure)
     }
     
@@ -178,53 +176,5 @@ public class IBIncludedWrapperViewController: UIViewController, IBIncludedSeguea
             return activeViewController(nextController)
         }
         return controller
-    }
-}
-
-extension UIApplication {
-    public class func findIBIncludedWrapperViewController(controller: UIViewController? = nil) -> IBIncludedWrapperViewController? {
-        var topController = controller
-        if topController == nil,
-            let delegate = UIApplication.sharedApplication().delegate,
-            let window = delegate.window {
-            topController = window?.rootViewController
-        }
-        if topController == nil {
-            return nil
-        }
-        if let selfController = topController as? IBIncludedWrapperViewController {
-            return selfController
-        }
-        if let tabController = topController as? UITabBarController, let nextController = tabController.selectedViewController {
-            return findIBIncludedWrapperViewController(nextController)
-        } else if let navController = topController as? UINavigationController, let nextController = navController.visibleViewController {
-            return findIBIncludedWrapperViewController(nextController)
-        } else if let nextController = topController?.presentedViewController {
-            return findIBIncludedWrapperViewController(nextController)
-        }
-        for controller in (topController?.childViewControllers ?? []) {
-            if let childController = findIBIncludedWrapperViewController(controller) {
-                return childController
-            }
-        }
-        return nil
-    }
-    
-    public class func findTopIBIncludedWrapperViewController() -> IBIncludedWrapperViewController? {
-        if let delegate = UIApplication.sharedApplication().delegate, let window = delegate.window, let topController = window?.rootViewController {
-            var viewControllers: [UIViewController] = [topController]
-            while viewControllers.count > 0 {
-                if let currentController = viewControllers.popLast() {
-                    for childController in currentController.childViewControllers {
-                        if let controller = childController as? IBIncludedWrapperViewController {
-                            return controller
-                        } else {
-                            viewControllers.append(childController)
-                        }
-                    }
-                }
-            }
-        }
-        return nil
     }
 }

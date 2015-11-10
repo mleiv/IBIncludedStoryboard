@@ -15,6 +15,8 @@ class MainScene1Controller: IBIncludedWrapperViewController, IBIncludedSegueable
     lazy var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType = { (destination) in
         if let includedDestination = destination as? SecondScene1Controller {
             includedDestination.sentValue = self.textField?.text ?? ""
+            return true
         }
+        return false
     }
 }

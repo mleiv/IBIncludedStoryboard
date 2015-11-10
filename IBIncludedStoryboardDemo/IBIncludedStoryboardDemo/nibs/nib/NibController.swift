@@ -44,7 +44,9 @@ class NibController: UIViewController, IBIncludedSegueableController {
     lazy var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType = { (destination) in
         if let includedDestination = destination as? Nib2Controller {
             includedDestination.sentValue = self.storedValue
+            return true
         }
+        return false
     }
 
 }

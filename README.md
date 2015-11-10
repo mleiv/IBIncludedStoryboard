@@ -4,6 +4,14 @@
 
 Storyboards can easily get too large and they are slow and difficut to collaborate on without conflicts. IBIncludedStoryboard allows developers to break up their application into sensible chunks and link the storyboards visually.
 
+## News: 2015-11-10
+
+**UPDATE - MIGRATION REQUIRED** I have altered PrepareAfterIBIncludedSegueType to return a boolean that indicates whether or not that closure is finished sharing data and can be deleted. This prevents scenarios where top-level wrapper controllers with multiple nested IBIncludeds were re-running older closures that collided with newer closures. 
+
+*This will require changes to all prepareAfterIBIncludedSegue values, sorry.*
+
+I am also explicitly deleting all saved wrapper closures after a segue (assumption: when a scene is seguing to a new scene, any old closures from the prior segue are probably no longer needed). I am assuming that I am using the most complex combination of IBIncludeds and after-segue sharing out there in my [ME Tracker app](https://twitter.com/ee_ivie/status/663540913247944704), and nothing broke for me, but YMMV.
+
 ## News: 2015-10-27
 
 Swift 2.0 merged into main branch. There is no Swift 1.2 branch anymore.
@@ -26,7 +34,7 @@ In your main storyboard, create a placeholder view controller where you want to 
 
 1. Select the placeholder's root view.
 2. Change the root view's class name to IBIncludedStoryboard.
-3. Identify the storyboard in the IBIncludedStoryboard user-defined runtime attributes **Storyboard** and, optionally, **Id** (they will appear under the Attributes Inspector tab, one to the right of the Identity Inspector shown in the screenshot).
+3. Identify the storyboard in the IBIncludedStoryboard user-defined runtime attributes **Storyboard** and, optionally, **SceneId** (they will appear under the Attributes Inspector tab, one to the right of the Identity Inspector shown in the screenshot).
 4. The chosen scene from your new storyboard should appear in the Interface Builder window.
 
 That's it! You now have linked storyboards. All of your selected scene attributes, like scene title, should propogate up to the main storyboard placeholder scene. Your selected scene will, however, remain a child of the placeholder (rather than replacing it in the storyboard). See [The Catch - Segues](#the-catch---segues) further down for problems that relationship may cause.
@@ -82,7 +90,9 @@ class MyIncludedNibController: UIViewController, IBIncludedSegueableController {
      var prepareAfterIBIncludedSegue: PrepareAfterIBIncludedSegueType = { (destination) in
          if let expected = destination as? MyOtherIncludedNibController {
                expected.customVariable = self.customVariable
+               return true // (true = done sharing data, delete this closure)
          }
+         return false
      }
 }
 ```
