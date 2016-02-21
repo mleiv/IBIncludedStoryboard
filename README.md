@@ -1,8 +1,14 @@
 # IBIncludedStoryboard
 
-**This iOS Swift class allows you to easily embed storyboard scenes into other storyboards with minimal extra code.**
+***DEPRECATED. All further development will be in project [IBIncludedThing](https://github.com/mleiv/IBIncludedThing). Also, it is way easier to use. :)***
+
+*This iOS Swift class allows you to easily embed storyboard scenes into other storyboards with minimal extra code.*
 
 Storyboards can easily get too large and they are slow and difficut to collaborate on without conflicts. IBIncludedStoryboard allows developers to break up their application into sensible chunks and link the storyboards visually.
+
+## News: 2016-02-21
+
+Switched to the new project [IBIncludedThing](https://github.com/mleiv/IBIncludedThing) with a slightly different approach to including storyboards and nibs, allowing for prepareForSegue and quick access to child included content.
 
 ## News: 2015-11-10
 
